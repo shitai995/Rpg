@@ -16,7 +16,7 @@ public class Player : MonoBehaviour
     #region 组件与核心对象（外部只读，内部赋值）
     public Animator anim { get; private set; } // 动画组件
     public Rigidbody2D rb { get; private set; } // 2D刚体组件
-    public PlayerInputSet input { get; private set; } // 输入集合（Input System）
+    public PlayerInputSet input { get; private set; } // 输入集合
     private StateMachine stateMachine; // 状态机管理器
 
     // 所有玩家状态实例（供状态切换使用）
