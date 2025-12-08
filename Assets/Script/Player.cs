@@ -18,8 +18,6 @@ public class Player : MonoBehaviour
     public Rigidbody2D rb { get; private set; } // 2D刚体组件
     public PlayerInputSet input { get; private set; } // 输入集合
     private StateMachine stateMachine; // 状态机管理器
-
-
     // 所有玩家状态实例（供状态切换使用）
     public Player_IdleState idleState { get; private set; }
     public Player_MoveState moveState { get; private set; }
