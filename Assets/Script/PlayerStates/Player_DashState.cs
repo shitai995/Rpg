@@ -8,7 +8,7 @@
 
 using UnityEngine;
 
-public class Player_DashState : EntityState
+public class Player_DashState : PlayerState
 {
     private float originalGravityScale; // 原始重力缩放（用于冲刺结束后恢复）
     private int dashDir; // 冲刺方向（跟随输入或当前面向）

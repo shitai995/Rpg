@@ -8,7 +8,7 @@
 
 using UnityEngine;
 
-public class Player_BasicAttackState : EntityState
+public class Player_BasicAttackState : PlayerState
 {
     #region 攻击相关计时器与状态标记
     private float attackVelocityTimer; // 攻击移动速度计时器（控制攻击位移持续时间）

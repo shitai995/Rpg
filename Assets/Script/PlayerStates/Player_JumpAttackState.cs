@@ -7,7 +7,7 @@
 // ========================================================
 
 using UnityEngine;
-public class Player_JumpAttackState : EntityState
+public class Player_JumpAttackState : PlayerState
 {
     private bool touchedGround; // 落地标记（确保落地动画只触发一次）
 
