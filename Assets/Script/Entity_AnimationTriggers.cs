@@ -8,13 +8,13 @@
 
 using UnityEngine;
 
-public class Player_AnimationTriggers : MonoBehaviour
+public class Entity_AnimationTriggers : MonoBehaviour
 {
-    private Player player;
+    private Entity entity;
 
     private void Awake()
     {
-        player = GetComponentInParent<Player>();
+        entity = GetComponentInParent<Entity>();
     }
 
     /// <summary>
@@ -24,6 +24,10 @@ public class Player_AnimationTriggers : MonoBehaviour
     private void CurrentStateTriger()
     {
         // 调用Player的触发标记方法，间接通知当前状态机状态已触发
-        player.CallAnimtionTrigger();
+        entity.CurrentStateAnimationTrigger();
+    }
+    private void AttackTrigger()
+    {
+        Debug.Log("gongji");
     }
 }

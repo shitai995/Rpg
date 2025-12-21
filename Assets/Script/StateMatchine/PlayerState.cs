@@ -36,11 +36,16 @@ public abstract class PlayerState : EntityState
     {
         base.Update();
 
-        anim.SetFloat("yVelocity", rb.linearVelocity.y); // 传递Y轴速度给动画
 
         // 检测冲刺输入，满足条件则切换到冲刺状态
         if (input.Player.Dash.WasPressedThisFrame() && CanDash())
             stateMachine.ChangeState(player.dashState);
+    }
+    public override void UpdateAnimationParameters()
+    {
+        base.UpdateAnimationParameters();
+
+        anim.SetFloat("yVelocity", rb.linearVelocity.y); // 传递Y轴速度给动画
     }
     /// <summary>
     /// 冲刺条件判定（贴墙/已在冲刺状态时不可冲刺）

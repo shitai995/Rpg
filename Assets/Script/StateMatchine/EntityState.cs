@@ -33,6 +33,7 @@ public abstract class EntityState
     public virtual void Update()
     {
         stateTimer -= Time.deltaTime; // 计时器倒计时
+        UpdateAnimationParameters();
     }
 
     public virtual void Exit()
@@ -43,10 +44,16 @@ public abstract class EntityState
     /// <summary>
     /// 动画事件回调：标记触发已执行（避免重复行为）
     /// </summary>
-    public void CallAnimtionTrigger()
+    public void AnimtionTrigger()
     {
         triggerCalled = true;
     }
+    /// <summary>
+    /// 更新动画参数（虚方法，子类重写实现具体逻辑）
+    /// 比如：给动画传移动速度、攻击状态等参数
+    /// </summary>
+    public virtual void UpdateAnimationParameters()
+    {
 
-
+    }
 }

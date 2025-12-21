@@ -16,9 +16,9 @@ public class Entity : MonoBehaviour
     #endregion
 
     [Header("碰撞检测")]
+    [SerializeField] protected LayerMask whatIsGround; // 地面层掩码
     [SerializeField] private float groundCheckDistance; // 地面检测射线长度
     [SerializeField] private float wallCheckDistance; // 墙壁检测射线长度
-    [SerializeField] private LayerMask whatIsGround; // 地面层掩码
     [SerializeField] private Transform groundCheck;
     [SerializeField] private Transform primaryWallCheck; // 主墙壁检测点
     [SerializeField] private Transform secondaryWallCheck; // 副墙壁检测点
@@ -51,18 +51,19 @@ public class Entity : MonoBehaviour
     /// <summary>
     /// 每帧更新：碰撞检测 + 状态机更新
     /// </summary>
-    private void Update()
+    protected virtual void Update()
     {
         HandleCollisionDetection();
         stateMachine.UpdateActiveState();
     }
 
     /// <summary>
+    /// 当前状态触发器
     /// 动画事件回调：通知当前状态触发已执行（避免重复攻击）
     /// </summary>
-    public void CallAnimtionTrigger()
+    public void CurrentStateAnimationTrigger()
     {
-        stateMachine.currentState.CallAnimtionTrigger();
+        stateMachine.currentState.AnimtionTrigger();
     }
 
     /// <summary>
@@ -77,7 +78,7 @@ public class Entity : MonoBehaviour
     /// <summary>
     /// 根据X轴速度处理角色翻转
     /// </summary>
-    private void HandleFlip(float xVelcoity)
+    public void HandleFlip(float xVelcoity)
     {
         if (xVelcoity > 0 && !facingRight)
             Flip();
@@ -115,7 +116,7 @@ public class Entity : MonoBehaviour
     /// <summary>
     /// Gizmos辅助线：场景视图显示检测射线（便于调试）
     /// </summary>
-    private void OnDrawGizmos()
+    protected virtual void OnDrawGizmos()
     {
         Gizmos.DrawLine(groundCheck.position, groundCheck.position + new Vector3(0, -groundCheckDistance));
         Gizmos.DrawLine(primaryWallCheck.position, primaryWallCheck.position + new Vector3(wallCheckDistance * facingDir, 0));
