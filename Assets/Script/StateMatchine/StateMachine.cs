@@ -12,6 +12,7 @@ public class StateMachine
 {
 
     public EntityState currentState { get; private set; }
+    public bool canChangesState;
 
     /// <summary>
     /// 初始化状态机
@@ -20,11 +21,14 @@ public class StateMachine
     /// <param name="startState">游戏初始状态（如玩家闲置状态）</param>
     public void Initialize(EntityState startState)
     {
+        canChangesState = true;
         currentState = startState;
         currentState.Enter(); // 执行初始状态的进入逻辑（如激活动画、初始化参数）
     }
     public void ChangeState(EntityState newState)
     {
+        if (canChangesState == false)
+            return; 
         currentState.Exit(); // 执行旧状态的退出逻辑（如关闭动画、清理参数）
         currentState = newState; // 更新当前状态为新状态
         currentState.Enter(); // 执行新状态的进入逻辑
@@ -38,4 +42,7 @@ public class StateMachine
     {
         currentState.Update(); // 调用当前状态的Update方法（处理输入、状态切换条件等）
     }
+
+    
+    public void SwitchOffStateMachine() => canChangesState = false;
 }
