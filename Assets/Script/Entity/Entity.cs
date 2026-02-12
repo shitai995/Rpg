@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections;
+using Unity.Cinemachine;
 using UnityEngine;
 
 public class Entity : MonoBehaviour
@@ -18,6 +19,7 @@ public class Entity : MonoBehaviour
     #region 组件与核心对象（外部只读，内部赋值）
     public Animator anim { get; private set; } // 动画组件
     public Rigidbody2D rb { get; private set; } // 2D刚体组件
+    public Entity_Stats stats { get; private set; }
     protected StateMachine stateMachine; // 状态机管理器
     #endregion
     private bool facingRight = true; // 是否面朝右
@@ -36,9 +38,9 @@ public class Entity : MonoBehaviour
     public bool wallDetected { get; private set; } // 是否检测到墙壁
 
 
-    private Coroutine knockbackCo;// 击退协程引用（用于中断重复击退）
     private bool isKnocked;// 击退状态标记（击退期间禁用移动等逻辑）
-
+    private Coroutine knockbackCo;// 击退协程引用（用于中断重复击退）
+    private Coroutine slowDownCo;
     /// <summary>
     /// 初始化组件和状态机
     /// </summary>
@@ -47,6 +49,7 @@ public class Entity : MonoBehaviour
         // 获取核心组件
         anim = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        stats = GetComponent<Entity_Stats>();
         stateMachine = new StateMachine();
         
     }
@@ -77,6 +80,19 @@ public class Entity : MonoBehaviour
     public virtual void EntityDeath()
     {
 
+    }
+
+    public virtual void SlowDownEntity(float duration, float slowMultiplier)
+    {
+        if(slowDownCo != null)
+            StopCoroutine(slowDownCo);
+
+        slowDownCo = StartCoroutine(SlowDownEntityCo(duration, slowMultiplier));
+    }
+
+    protected virtual IEnumerator SlowDownEntityCo(float duration, float slowMultiplier)
+    {
+        yield return null;
     }
     /// <summary>
     /// 接收击退指令（对外公开接口）

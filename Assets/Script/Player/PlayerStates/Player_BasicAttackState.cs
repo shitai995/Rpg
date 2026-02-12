@@ -37,7 +37,7 @@ public class Player_BasicAttackState : PlayerState
 
         comboAttackQueued = false; // 重置连招排队标记
         ResetComboIndexIfNeeded(); // 校验并重置连招索引（超时/超段数时重置为第1段）
-
+        SyncAttackSpeed();
         // 确定攻击方向：有水平输入则跟随输入，无则沿用当前面向
         attackDir = player.moveInput.x != 0 ? (int)player.moveInput.x : player.facingDir;
 

@@ -5,7 +5,9 @@
 // 描述：
 // ========================================================
 
+using System.Collections;
 using System.Runtime.CompilerServices;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -42,8 +44,27 @@ public class Enemy : Entity
     [SerializeField] private Transform playerCheck;// 玩家检测的射线起点（挂载点）
     [SerializeField] private float playerCheckDistance = 10;// 玩家检测距离
     public Transform player { get; private set; }
+    /// <summary>
+    /// 减缓移动速度
+    /// </summary>
+    protected override IEnumerator SlowDownEntityCo(float duration,float slowMultiplier)
+    {
+        float originalMoveSpeed = moveSpeed;
+        float originalBattleSpeed = battleMoveSpeed;
+        float originalAnimSpeed = anim.speed;
 
+        float speedMultiplier = 1 - slowMultiplier;
 
+        moveSpeed = moveSpeed * speedMultiplier;
+        battleMoveSpeed  = battleMoveSpeed* speedMultiplier;
+        anim.speed = anim.speed * speedMultiplier;
+
+        yield return new WaitForSeconds(duration);
+
+        moveSpeed = originalMoveSpeed;
+        battleMoveSpeed = originalBattleSpeed;
+        anim.speed = originalAnimSpeed;
+    }
     public void EnableCounterWindow(bool enabled) => canBeStunned = enabled;
     public override void EntityDeath()
     {

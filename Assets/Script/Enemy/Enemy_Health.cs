@@ -17,10 +17,10 @@ public class Enemy_Health : Entity_Health
     /// 重写基类的受击方法，扩展敌人专属逻辑
     /// 执行流程：判断伤害来源是否为玩家 → 触发战斗状态 → 执行基类通用受击逻辑（扣血、击退、特效）
     /// </summary>
-    public override bool TakeDamage(float damage, Transform damageDealer)
+    public override bool TakeDamage(float damage,float elementalDamage,ElementType element, Transform damageDealer)
     {
         // 此处顺序：先触发战斗状态，再扣血（符合“被玩家攻击→进入战斗→受击扣血”的逻辑）
-        bool wasHit =  base.TakeDamage(damage, damageDealer);
+        bool wasHit =  base.TakeDamage(damage,elementalDamage, element, damageDealer);
 
         if (!wasHit)
             return false;

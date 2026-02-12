@@ -19,17 +19,71 @@ public class Entity_VFX : MonoBehaviour
     private Material originalMaterial;// 缓存的原始材质（用于特效结束后恢复）
     private Coroutine onDamageVfxCoroutine;// 受击特效协程引用（用于中断重复触发的特效）
 
-    [Header("On Doing Damage VFX")]
-    [SerializeField] private Color hitVfxColor = Color.white;
-    [SerializeField] private GameObject hitVfx;
-    [SerializeField] private GameObject critHitVfx;
+    [Header("攻击颜色")]
+    [SerializeField] private Color hitVfxColor = Color.white;// 攻击命中特效默认颜色
+    [SerializeField] private GameObject hitVfx; // 普通命中特效预制体
+    [SerializeField] private GameObject critHitVfx;// 暴击命中特效预制体
+
+    [Header("特效颜色")]
+    [SerializeField] private Color chillVfx = Color.cyan;
+    [SerializeField] private Color burnVfx = Color.red;
+    [SerializeField] private Color electrifyVfx = Color.yellow;
+    private Color originalHitVfxColor;// 缓存命中特效原始颜色（用于元素特效结束后恢复）
+    private Coroutine statusVfxCo;
+
+
     private void Awake()
     {
         entity = GetComponent<Entity>();
         sr = GetComponentInChildren<SpriteRenderer>();
         // 缓存原始材质（避免重复获取，同时防止材质实例化后丢失原引用）
         originalMaterial = sr.material;
+        originalHitVfxColor = hitVfxColor; 
     }
+    public void PlayOnStatusVfx(float duration,ElementType element)
+    {
+        if(element == ElementType.Ice)
+            StartCoroutine(PlayStatusVfxCo(duration, chillVfx));
+        
+        if(element == ElementType.Fire)
+            StartCoroutine(PlayStatusVfxCo(duration, burnVfx));
+
+        if(element == ElementType.Lightning)
+            StartCoroutine(PlayStatusVfxCo(duration, electrifyVfx));
+    }
+    public void StopAllVfx()
+    {
+        StopAllCoroutines();
+        sr.color = Color.white;
+        sr.material = originalMaterial;
+    }
+    /// <summary>
+    /// 元素状态特效协程（内部执行逻辑）
+    /// </summary>
+    private IEnumerator PlayStatusVfxCo(float duration,Color effectColor)
+    {
+        float tickInterval = .25f;// 颜色闪烁间隔（秒）
+        float timeHasPassed = 0;// 已流逝时间（用于判断是否达到持续时长）
+
+        // 计算闪烁的高亮/暗化颜色（基于传入的元素颜色
+        Color lightColor = effectColor * 1.2f;
+        Color darkColor = effectColor * .8f;
+
+        bool toggle = false;// 颜色切换开关
+        // 循环执行颜色闪烁，直到达到持续时长
+        while (timeHasPassed < duration)
+        {
+            sr.color = toggle ? lightColor : darkColor;
+            toggle = !toggle;
+
+            yield return new WaitForSeconds(tickInterval);
+            timeHasPassed = timeHasPassed + tickInterval;// 累加已流逝时间
+
+        }
+
+        sr.color = Color.white;
+    }
+
     /// <summary>
     /// 创建攻击特效
     /// </summary>
@@ -43,6 +97,18 @@ public class Entity_VFX : MonoBehaviour
 
         if (entity.facingDir == -1 && isCrit)
             vfx.transform.Rotate(0, 180, 0);
+        
+    }
+    /// <summary>
+    /// 更新命中特效颜色
+    /// </summary>
+    public void UpdateOnHitColor(ElementType element)
+    {
+        if(element == ElementType.Ice)
+            hitVfxColor = chillVfx;
+
+        if(element == ElementType.None)
+            hitVfxColor = originalHitVfxColor;
     }
     /// <summary>
     /// 播放受击材质特效（对外公开的调用接口）

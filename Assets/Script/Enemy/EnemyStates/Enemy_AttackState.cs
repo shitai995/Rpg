@@ -13,6 +13,12 @@ public class Enemy_AttackState : EnemyState
     {
     }
 
+    public override void Enter()
+    {
+        base.Enter();
+        SyncAttackSpeed();
+
+    }
     public override void Update()
     {
         base.Update();
