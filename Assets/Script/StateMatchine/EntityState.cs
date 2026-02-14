@@ -14,6 +14,7 @@ public abstract class EntityState
 
     protected Animator anim; // 动画组件（从Player获取）
     protected Rigidbody2D rb; // 2D刚体组件（从Player获取）
+    protected Entity_Stats stats; 
 
     protected float stateTimer; // 状态计时器（控制状态持续时间）
     protected bool triggerCalled; // 动画触发标记（避免重复攻击等行为）
@@ -55,5 +56,10 @@ public abstract class EntityState
     public virtual void UpdateAnimationParameters()
     {
 
+    }
+    public void SyncAttackSpeed()
+    {
+        float attackSpeed = stats.offense.attackSpeed.GetValue();
+        anim.SetFloat("attackSpeedMultiplier", attackSpeed);
     }
 }
