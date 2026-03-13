@@ -21,6 +21,9 @@ public class Player_DashState : PlayerState
     {
         base.Enter(); // 激活冲刺动画、重置触发标记
 
+        skillManager.dash.OnStartEffect();
+        player.vfx.DoImageEchoEffect(player.dashDuration);
+
         // 确定冲刺方向：有水平输入则跟随输入，无则沿用当前面向
         dashDir = player.moveInput.x != 0 ? (int)player.moveInput.x : player.facingDir;
         // 初始化冲刺计时器（控制冲刺持续时间）
@@ -49,6 +52,8 @@ public class Player_DashState : PlayerState
     public override void Exit()
     {
         base.Exit(); // 关闭冲刺动画
+
+        skillManager.dash.OnEndEffect();
 
         player.SetVelocity(0, 0); // 重置速度（避免冲刺后残留速度）
         rb.gravityScale = originalGravityScale; // 恢复原始重力

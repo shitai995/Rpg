@@ -17,11 +17,11 @@ public class Entity_StatusHandler : MonoBehaviour
     // 当前身上正存在的元素状态效果，默认无任何状态
     private ElementType currentEffect = ElementType.None;
 
-    [Header("Electrify efect details")]
+    [Header("Shock efect details")]
     [SerializeField] private GameObject LightingStrikeVfx;// 雷电充能满后触发的雷击特效预制体
     [SerializeField] private float currentCharge;// 当前雷电充能值（累加至最大值触发雷击）
     [SerializeField] private float maximumCharge = 1;// 雷电充能最大值（达到该值触发雷击）
-    private Coroutine electrifyCo;// 雷电状态协程引用
+    private Coroutine shockCo;// 雷电状态协程引用
     private void Awake()
     {
         entity = GetComponent<Entity>();
@@ -29,10 +29,22 @@ public class Entity_StatusHandler : MonoBehaviour
         entityStats = GetComponent<Entity_Stats>();
         entityHealth = GetComponent<Entity_Health>();
     }
+
+    public void ApplyStatusEffect(ElementType element,ElementalEffectData effectData)
+    {
+        if (element == ElementType.Ice && CanBeApplied(ElementType.Ice))
+            ApplyChillEffect(effectData.chillDuration, effectData.chillSlowMultiplier);
+
+        if(element == ElementType.Fire && CanBeApplied(ElementType.Fire))
+            ApplyBurnEffect(effectData.burnDuration,effectData.totalBurnDamage);
+
+        if (element == ElementType.Lightning && CanBeApplied(ElementType.Lightning))
+            ApplyShockEffect(effectData.shockDuration, effectData.shockDamage, effectData.shockCharge);
+    }
     /// <summary>
     /// // 施加雷电充能效果累加充能值，充能满触发雷击；未充满则启动雷电状态特效
     /// </summary>
-    public void ApplyElectrifyEffect(float duration, float damage, float charge)
+    public void ApplyShockEffect(float duration, float damage, float charge)
     {
         // 获取雷电元素抗性，计算最终充能值（抗性越高，充能增加越少）
         float lightningResistance = entityStats.GetElementalResistance(ElementType.Lightning);
@@ -43,17 +55,17 @@ public class Entity_StatusHandler : MonoBehaviour
         if (currentCharge >= maximumCharge)
         {
             DoLightningStrike(damage);
-            StopElectrifyEffect();
+            StopShockEffect();
             return;
         }
         // 若雷电协程已在运行，先中断（防止协程叠加）
-        if (electrifyCo != null)
-            StopCoroutine(electrifyCo);
+        if (shockCo != null)
+            StopCoroutine(shockCo);
         // 启动雷电状态协程，播放特效
-        electrifyCo = StartCoroutine(ElectrifyEffectCo(duration));
+        shockCo = StartCoroutine(ShockEffectCo(duration));
     }
 
-    private void StopElectrifyEffect()
+    private void StopShockEffect()
     {
         currentEffect = ElementType.None;
         currentCharge = 0;
@@ -68,13 +80,13 @@ public class Entity_StatusHandler : MonoBehaviour
         entityHealth.ReduceHealth(damage);
     }
     // 雷电状态协程
-    private IEnumerator ElectrifyEffectCo(float duration)
+    private IEnumerator ShockEffectCo(float duration)
     {
         currentEffect = ElementType.Lightning;
         entityVfx.PlayOnStatusVfx(duration, ElementType.Lightning);
 
         yield return new WaitForSeconds(duration);
-        StopElectrifyEffect();
+        StopShockEffect();
     }
     /// <summary>
     /// 施加火焰灼烧效果

@@ -16,7 +16,12 @@ public class Player : Entity
 {
     public static event Action OnPlayerDeath;
 
+    private UI ui;
     public PlayerInputSet input { get; private set; } // 输入集合
+    public Player_SkillManager skillManager { get; private set; }
+
+    public Player_VFX vfx { get; private set; }
+    #region State Varisbles
     // 所有玩家状态实例（供状态切换使用）
     public Player_IdleState idleState { get; private set; }
     public Player_MoveState moveState { get; private set; }
@@ -28,8 +33,8 @@ public class Player : Entity
     public Player_BasicAttackState basicAttackState { get; private set; }
     public Player_JumpAttackState jumpAttackState { get; private set; }
     public Player_DeadState deadState { get; private set; }
-    public Player_CounterAttackState counterAttackState { get; private set; }   
-
+    public Player_CounterAttackState counterAttackState { get; private set; }
+    #endregion
     #region 配置参数（Inspector面板设置）
     [Header("攻击相关配置")]
     public Vector2[] attackVelocity; // 攻击时移动速度数组（对应多段攻击）
@@ -55,8 +60,11 @@ public class Player : Entity
     protected override void Awake()
     {
         base.Awake();
-
+        ui = FindAnyObjectByType<UI>();
         input = new PlayerInputSet();
+        skillManager = GetComponent<Player_SkillManager>();
+        vfx = GetComponent<Player_VFX>();
+
 
         // 初始化所有状态实例
         idleState = new Player_IdleState(this, stateMachine, "idle");
@@ -79,7 +87,13 @@ public class Player : Entity
         base.Start();
         stateMachine.Initialize(idleState);
     }
+    // 玩家瞬移方法
+    public void TeleportPlayer(Vector3 position) => transform.position = position;
 
+    /// <summary>
+    /// 实体减速协程
+    /// 临时降低玩家移动、跳跃、攻击等速度，持续指定时长后恢复原值
+    /// </summary>
     protected override IEnumerator SlowDownEntityCo(float duration, float slowMultiplier)
     {
         float originalMoveSpeed = moveSpeed;
@@ -88,7 +102,7 @@ public class Player : Entity
         Vector2 originalWallJump = wallJumpForce;
         Vector2 originalJumpAttack = jumpAttackVelocity;
         Vector2[] originalAttackVelocity = attackVelocity;
-
+        // 计算实际减速倍率（1 - 传入的减速比例）
         float speedMultiplier = 1 - slowMultiplier;
 
         moveSpeed = moveSpeed * speedMultiplier; 
@@ -96,12 +110,12 @@ public class Player : Entity
         anim.speed = anim.speed * speedMultiplier;
         wallJumpForce = wallJumpForce * speedMultiplier;
         jumpAttackVelocity = jumpAttackVelocity * speedMultiplier;
-
-        for(int i = 0; i < attackVelocity.Length; i++)
+        // 遍历攻击速度数组，逐元素应用减速
+        for (int i = 0; i < attackVelocity.Length; i++)
         {
             attackVelocity[i] = attackVelocity[i] * speedMultiplier;
         }
-
+        // 等待减速持续时长
         yield return new WaitForSeconds(duration);
 
         moveSpeed = originalMoveSpeed;
@@ -109,8 +123,8 @@ public class Player : Entity
         anim.speed = originalAnimSpeed;
         wallJumpForce = originalWallJump;
         jumpAttackVelocity = originalJumpAttack;
-
-        for( int i = 0;i < attackVelocity.Length; i++)
+        // 恢复攻击速度数组
+        for ( int i = 0;i < attackVelocity.Length; i++)
         {
             attackVelocity[i] = originalAttackVelocity[i];
         }
@@ -149,6 +163,9 @@ public class Player : Entity
         input.Enable();
         input.Player.Movement.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
         input.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
+
+        input.Player.ToggleSkillTreeUI.performed += ctx => ui.ToggleSkillTreeUI();
+        input.Player.Spell.performed += ctx => skillManager.shard.TryUseSkill();
     }
 
     /// <summary>

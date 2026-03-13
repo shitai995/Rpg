@@ -12,5 +12,5 @@ using System;
 public class Stat_ResourceGroup
 {
     public Stat maxHealth;
-    public Stat healthRegen;
+    public Stat healthRegen;// 生命回复
 }
