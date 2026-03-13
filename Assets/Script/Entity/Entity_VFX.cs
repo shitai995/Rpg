@@ -10,7 +10,7 @@ using UnityEngine;
 
 public class Entity_VFX : MonoBehaviour
 {
-    private SpriteRenderer sr;// 实体的精灵渲染器（用于切换材质实现视觉特效）
+    protected SpriteRenderer sr;// 实体的精灵渲染器（用于切换材质实现视觉特效）
     private Entity entity;
 
     [Header("受击材质特效参数")]
@@ -27,7 +27,7 @@ public class Entity_VFX : MonoBehaviour
     [Header("特效颜色")]
     [SerializeField] private Color chillVfx = Color.cyan;
     [SerializeField] private Color burnVfx = Color.red;
-    [SerializeField] private Color electrifyVfx = Color.yellow;
+    [SerializeField] private Color shockVfx = Color.yellow;
     private Color originalHitVfxColor;// 缓存命中特效原始颜色（用于元素特效结束后恢复）
     private Coroutine statusVfxCo;
 
@@ -38,18 +38,18 @@ public class Entity_VFX : MonoBehaviour
         sr = GetComponentInChildren<SpriteRenderer>();
         // 缓存原始材质（避免重复获取，同时防止材质实例化后丢失原引用）
         originalMaterial = sr.material;
-        originalHitVfxColor = hitVfxColor; 
+        originalHitVfxColor = hitVfxColor;
     }
-    public void PlayOnStatusVfx(float duration,ElementType element)
+    public void PlayOnStatusVfx(float duration, ElementType element)
     {
-        if(element == ElementType.Ice)
+        if (element == ElementType.Ice)
             StartCoroutine(PlayStatusVfxCo(duration, chillVfx));
-        
-        if(element == ElementType.Fire)
+
+        if (element == ElementType.Fire)
             StartCoroutine(PlayStatusVfxCo(duration, burnVfx));
 
-        if(element == ElementType.Lightning)
-            StartCoroutine(PlayStatusVfxCo(duration, electrifyVfx));
+        if (element == ElementType.Lightning)
+            StartCoroutine(PlayStatusVfxCo(duration, shockVfx));
     }
     public void StopAllVfx()
     {
@@ -60,7 +60,7 @@ public class Entity_VFX : MonoBehaviour
     /// <summary>
     /// 元素状态特效协程（内部执行逻辑）
     /// </summary>
-    private IEnumerator PlayStatusVfxCo(float duration,Color effectColor)
+    private IEnumerator PlayStatusVfxCo(float duration, Color effectColor)
     {
         float tickInterval = .25f;// 颜色闪烁间隔（秒）
         float timeHasPassed = 0;// 已流逝时间（用于判断是否达到持续时长）
@@ -87,28 +87,33 @@ public class Entity_VFX : MonoBehaviour
     /// <summary>
     /// 创建攻击特效
     /// </summary>
-    public void CreateOnHitVFX(Transform target,bool isCrit)
+    public void CreateOnHitVFX(Transform target, bool isCrit,ElementType element)
     {
         GameObject hitPerfab = isCrit ? critHitVfx : hitVfx;
-        GameObject vfx =  Instantiate(hitPerfab, target.position,Quaternion.identity);
-
-
-        vfx.GetComponentInChildren<SpriteRenderer>().color = hitVfxColor;
+        GameObject vfx = Instantiate(hitPerfab, target.position, Quaternion.identity);
+        vfx.GetComponentInChildren<SpriteRenderer>().color = GetElementColor(element);
 
         if (entity.facingDir == -1 && isCrit)
             vfx.transform.Rotate(0, 180, 0);
-        
+
     }
     /// <summary>
     /// 更新命中特效颜色
     /// </summary>
-    public void UpdateOnHitColor(ElementType element)
+    public Color GetElementColor(ElementType element)
     {
-        if(element == ElementType.Ice)
-            hitVfxColor = chillVfx;
+        switch (element)
+        {
+            case ElementType.Ice:
+                return chillVfx;
+            case ElementType.Fire:
+                return burnVfx;
+            case ElementType.Lightning:
+                return shockVfx;
 
-        if(element == ElementType.None)
-            hitVfxColor = originalHitVfxColor;
+            default: return Color.white;
+        }
+
     }
     /// <summary>
     /// 播放受击材质特效（对外公开的调用接口）

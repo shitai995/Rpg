@@ -19,6 +19,10 @@ public class Entity_Stats : MonoBehaviour
     public Stat_DefenseGroup defense; // 防御属性分组
     public Stat_MajorGroup major;   // 核心属性分组
 
+    public AttackData GetAttackData(DamageScaleData scaleData)
+    {
+        return new AttackData(this, scaleData); 
+    }
     /// <summary>
     /// 获取最终元素伤害值，输出本次触发的主元素类型
     /// </summary>
