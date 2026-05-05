@@ -32,6 +32,8 @@ public class Player_DashState : PlayerState
         // 保存原始重力并设为0（冲刺期间无重力，保持水平冲刺）
         originalGravityScale = rb.gravityScale;
         rb.gravityScale = 0;
+
+        player.health.SetCanTakeDamage(false);
     }
 
     public override void Update()
@@ -45,7 +47,10 @@ public class Player_DashState : PlayerState
         // 冲刺计时器结束：根据是否在地面切换状态
         if (stateTimer < 0)
         {
-            stateMachine.ChangeState(player.groundDetected ? player.idleState : player.fallState);
+            if (player.groundDetected)
+                stateMachine.ChangeState(player.idleState);
+            else
+                stateMachine.ChangeState(player.fallState);
         }
     }
 
@@ -55,6 +60,7 @@ public class Player_DashState : PlayerState
 
         skillManager.dash.OnEndEffect();
 
+        player.health.SetCanTakeDamage(true);
         player.SetVelocity(0, 0); // 重置速度（避免冲刺后残留速度）
         rb.gravityScale = originalGravityScale; // 恢复原始重力
     }
@@ -67,7 +73,10 @@ public class Player_DashState : PlayerState
         if (player.wallDetected)
         {
             // 撞墙且在地面→闲置状态；撞墙且在空中→滑墙状态
-            stateMachine.ChangeState(player.groundDetected ? player.idleState : player.wallSlideState);
+            if (player.groundDetected)
+                stateMachine.ChangeState(player.idleState);
+            else
+                stateMachine.ChangeState(player.wallSlideState);
         }
     }
 }

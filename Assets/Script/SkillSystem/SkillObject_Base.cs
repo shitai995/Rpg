@@ -7,27 +7,37 @@
 // 敌人检测、范围伤害、最近目标查找、Gizmos可视化调试等
 // ========================================================
 
-using NUnit.Framework.Constraints;
 using UnityEngine;
 
 public class SkillObject_Base : MonoBehaviour
 {
+    [SerializeField] private GameObject onHitVfx;
+    [Space]
     [SerializeField] protected LayerMask whatIsEnemy;
     [SerializeField] protected Transform targetCheck;// 目标检测的中心点
     [SerializeField] protected float checkRadius = 1;// 检测半径
 
+    protected Rigidbody2D rb;
+    protected Animator anim;
     protected Entity_Stats playerStats;
     protected DamageScaleData damageScaleData;// 伤害倍率配置
     protected ElementType usedElement;// 当前技能使用的元素类型
+    protected bool targetGotHit;
+    protected Transform lastTarget;
 
+    protected virtual void Awake()
+    {
+        anim = GetComponentInChildren<Animator>();
+        rb = GetComponent<Rigidbody2D>();
+    }
     /// <summary>
     /// 对指定范围内的所有敌人造成伤害
     /// 核心逻辑：检测敌人 → 调用IDamgable接口 → 应用元素状态效果
     /// </summary>
-    protected void DamageEnemiesInRadius(Transform t,float radius)
+    protected void DamageEnemiesInRadius(Transform t, float radius)
     {
         // 遍历检测范围内的所有敌人
-        foreach (var target in EnemiesAround(t, radius))
+        foreach (var target in GetEnemiesAround(t, radius))
         {
             // 1. 检测目标是否实现可受击接口
             IDamgable damgable = target.GetComponent<IDamgable>();
@@ -42,10 +52,16 @@ public class SkillObject_Base : MonoBehaviour
             float elemDamage = attackData.elementalDamage;
             ElementType element = attackData.element;
 
-            damgable.TakeDamage(physDamage,elemDamage,element,transform);
+            targetGotHit = damgable.TakeDamage(physDamage, elemDamage, element, transform);
             // 5. 若有元素类型，应用对应的元素状态效果
             if (element != ElementType.None)
                 statusHandler?.ApplyStatusEffect(element, attackData.effectData);
+
+            if (targetGotHit)
+            {
+                lastTarget = target.transform;
+                Instantiate(onHitVfx, target.transform.position, Quaternion.identity);
+            }
             // 6. 记录本次使用的元素类型
             usedElement = element;
         }
@@ -57,17 +73,17 @@ public class SkillObject_Base : MonoBehaviour
     protected Transform FindClosestTarget()
     {
         Transform target = null;
-        float closestDistansce = Mathf.Infinity;
+        float closestDistance = Mathf.Infinity;
 
-        foreach (var enemy in EnemiesAround(transform, 10))
+        foreach (var enemy in GetEnemiesAround(transform, 10))
         {
             // 计算当前敌人与自身的距离
-            float distance = Vector2.Distance(transform.position,enemy.transform.position);
+            float distance = Vector2.Distance(transform.position, enemy.transform.position);
             // 更新最近目标
-            if (distance < closestDistansce)
+            if (distance < closestDistance)
             {
                 target = enemy.transform;
-                closestDistansce = distance;
+                closestDistance = distance;
             }
         }
 
@@ -77,16 +93,16 @@ public class SkillObject_Base : MonoBehaviour
     /// 检测指定范围内的所有敌人
     /// </summary>
 
-    protected Collider2D[] EnemiesAround(Transform t, float radius)
+    protected Collider2D[] GetEnemiesAround(Transform t, float radius)
     {
         return Physics2D.OverlapCircleAll(t.position, radius, whatIsEnemy);
     }
 
-    protected virtual  void OnDrawGizmos()
+    protected virtual void OnDrawGizmos()
     {
-        if( targetCheck == null)
+        if (targetCheck == null)
             targetCheck = transform;
 
-        Gizmos.DrawWireSphere(targetCheck.position, checkRadius);   
+        Gizmos.DrawWireSphere(targetCheck.position, checkRadius);
     }
 }

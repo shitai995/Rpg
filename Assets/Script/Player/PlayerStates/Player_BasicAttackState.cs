@@ -127,7 +127,10 @@ public class Player_BasicAttackState : PlayerState
     /// </summary>
     private void ResetComboIndexIfNeeded()
     {
-        if (comboIndex > comboLimit || Time.time > lastTimeAttacked + player.comboResetTime)
+        if (Time.time > lastTimeAttacked + player.comboResetTime)
+            comboIndex = FirstComboIndex;
+
+        if (comboIndex > comboLimit)
             comboIndex = FirstComboIndex;
     }
 }

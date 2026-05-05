@@ -42,6 +42,6 @@ public class Skill_Dash : Skill_Base
     // 生成分身
     private void CreateClone()
     {
-        Debug.Log("Create time echo");
+        skillManager.timeEcho.CreateTimeEcho();
     }
 }

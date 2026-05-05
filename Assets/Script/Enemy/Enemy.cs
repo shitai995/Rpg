@@ -13,6 +13,7 @@ using UnityEngine.Rendering;
 
 public class Enemy : Entity
 {
+    public Enemy_Health health { get; private set; }
     public Enemy_IdleState idleState;
     public Enemy_MoveState moveState;
     public Enemy_AttackState attackState;
@@ -44,26 +45,35 @@ public class Enemy : Entity
     [SerializeField] private Transform playerCheck;// 玩家检测的射线起点（挂载点）
     [SerializeField] private float playerCheckDistance = 10;// 玩家检测距离
     public Transform player { get; private set; }
+
+    public float activeSlowMultiplier {  get; private set; } = 1;
+
+    public float GetMoveSpeed() => moveSpeed * activeSlowMultiplier;
+    public float GetBattleMoveSpeed() => battleMoveSpeed * activeSlowMultiplier;
+    protected override void Awake()
+    {
+        base.Awake();
+        health = GetComponent<Enemy_Health>();
+    }
     /// <summary>
     /// 减缓移动速度
     /// </summary>
     protected override IEnumerator SlowDownEntityCo(float duration,float slowMultiplier)
     {
-        float originalMoveSpeed = moveSpeed;
-        float originalBattleSpeed = battleMoveSpeed;
-        float originalAnimSpeed = anim.speed;
+        activeSlowMultiplier = 1 - slowMultiplier;
 
-        float speedMultiplier = 1 - slowMultiplier;
-
-        moveSpeed = moveSpeed * speedMultiplier;
-        battleMoveSpeed  = battleMoveSpeed* speedMultiplier;
-        anim.speed = anim.speed * speedMultiplier;
+        anim.speed = anim.speed * activeSlowMultiplier;
 
         yield return new WaitForSeconds(duration);
+        StopSlowDown();
+    }
 
-        moveSpeed = originalMoveSpeed;
-        battleMoveSpeed = originalBattleSpeed;
-        anim.speed = originalAnimSpeed;
+    public override void StopSlowDown()
+    {
+        activeSlowMultiplier = 1;
+        anim.speed = 1;
+        base.StopSlowDown();
+
     }
     public void EnableCounterWindow(bool enabled) => canBeStunned = enabled;
     public override void EntityDeath()
@@ -82,7 +92,10 @@ public class Enemy : Entity
     /// </summary>
     public void TryEnterBattleState(Transform player)
     {
-        if (stateMachine.currentState == battleState || stateMachine.currentState == attackState)
+        if (stateMachine.currentState == battleState)
+            return;
+
+        if (stateMachine.currentState == attackState)
             return;
 
         this.player = player;

@@ -10,6 +10,7 @@ using UnityEngine;
 public class Enemy_BattleState : EnemyState
 {
     private Transform player;// 目标玩家的Transform（追击/攻击的对象）
+    private Transform lastTarget;
     private float lastTimeWasInBattle;// 最后检测到玩家的时刻
     public Enemy_BattleState(Enemy enemy, StateMachine stateMachine, string animBoolName) : base(enemy, stateMachine, animBoolName)
     {
@@ -40,7 +41,10 @@ public class Enemy_BattleState : EnemyState
         base.Update();
         // 如果检测到玩家，更新“最后检测到玩家”的时间（重置战斗计时）
         if (enemy.PlayerDetected())
+        {
+            UpdateTargetIfNeeded();
             UpdateBattleTimer();
+        }
         // 战斗超时（长时间没检测到玩家）→ 切换回闲置状态
         if (BattleTimeIsOver())
             stateMachine.ChangeState(enemy.idleState);
@@ -49,7 +53,25 @@ public class Enemy_BattleState : EnemyState
             stateMachine.ChangeState(enemy.attackState);
         else
             // 不在攻击范围 → 向玩家方向移动（追击）
-            enemy.SetVelocity(enemy.battleMoveSpeed * DirectionToPlayer(), rb.linearVelocity.y);
+            enemy.SetVelocity(enemy.GetBattleMoveSpeed() * DirectionToPlayer(), rb.linearVelocity.y);
+    }
+    /// <summary>
+    /// 更新敌人检测切换玩家或分身
+    /// </summary>
+    private void UpdateTargetIfNeeded()
+    {
+        if (enemy.PlayerDetected() == false)
+            return;
+
+        Transform newTarget = enemy.PlayerDetected().transform;
+
+        if(newTarget != lastTarget)
+        {
+            lastTarget = newTarget;
+            player = newTarget;
+
+        }
+
     }
     /// <summary>
     /// 更新战斗计时器：记录最后检测到玩家的时刻

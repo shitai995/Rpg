@@ -31,5 +31,8 @@ public class Player_GroundedState : PlayerState
         // 格挡输入
         if (input.Player.CounterAttack.WasPressedThisFrame())
             stateMachine.ChangeState(player.counterAttackState);
+
+        if (input.Player.RangeAttack.WasPressedThisFrame() && skillManager.swordThrow.CanUseSkill())
+            stateMachine.ChangeState(player.swordThrowState);
     }
 }

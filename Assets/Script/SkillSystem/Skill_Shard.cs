@@ -23,7 +23,7 @@ public class Skill_Shard : Skill_Base
 
     [Header("充能碎片升级配置")]
     [SerializeField] private int maxCharges = 3;// 碎片最大充能次数
-    [SerializeField] private int currentChanges;// 当前剩余充能次数
+    [SerializeField] private int currentCharges;// 当前剩余充能次数
     [SerializeField] private bool isRecharging;// 是否正在充能中
 
     [Header("传送碎片升级配置")]
@@ -37,8 +37,41 @@ public class Skill_Shard : Skill_Base
     {
         base.Awake();
 
-        currentChanges = maxCharges;
+        currentCharges = maxCharges;
         playerHealth = GetComponentInParent<Entity_Health>();
+    }
+    /// <summary>
+    /// 生成碎片核心方法（主逻辑）
+    /// 根据升级类型设置碎片爆炸时间，绑定传送碎片的爆炸回调
+    /// </summary>
+    public void CreateShard()
+    {
+        // 获取碎片爆炸时间
+        float detonateTime = GetDetonateTime();
+
+        GameObject shard = Instantiate(shardPrefab, transform.position, Quaternion.identity);
+        currentShard = shard.GetComponent<SkillObject_Shard>();
+        currentShard.SetupShard(this);
+
+        // 传送/回血回溯碎片：绑定爆炸回调（强制触发冷却）
+        if (Unlocked(SkillUpgradeType.Shard_Teleport) || Unlocked(SkillUpgradeType.Shard_TeleportHpRewind))
+            currentShard.OnExplode += ForceCooldown;
+    }
+    /// <summary>
+    /// 生成原始碎片
+    /// </summary>
+    public void CreateRawShard(Transform target = null,bool shardsCanMove = false)
+    {
+        // 判断是否解锁移动/充能碎片升级（决定碎片是否追踪敌人）
+        bool canMove = shardsCanMove != false ? shardsCanMove :
+            Unlocked(SkillUpgradeType.Shard_MoveToEnemy) || Unlocked(SkillUpgradeType.Shard_Multicast);
+
+        GameObject shard = Instantiate(shardPrefab, transform.position, Quaternion.identity);
+        shard.GetComponent<SkillObject_Shard>().SetupShard(this, detonateTime, canMove, shardSpeed,target);
+    }
+    public void CreateDomainShard(Transform target)
+    {
+
     }
     /// <summary>
     /// 尝试使用碎片技能
@@ -124,12 +157,12 @@ public class Skill_Shard : Skill_Base
     /// </summary>
     private void HandleShardMulticast()
     {
-        if (currentChanges <= 0)
+        if (currentCharges <= 0)
             return;
         // 生成碎片并让其追踪最近敌人
         CreateShard();
-        currentShard.MoveTowardsClosesTarget(shardSpeed);
-        currentChanges--;
+        currentShard.MoveTowardsClosestTarget(shardSpeed);
+        currentCharges--;
         // 未在充能时，开启充能协程
         if (isRecharging == false)
             StartCoroutine(ShardRechargeCo());
@@ -142,10 +175,10 @@ public class Skill_Shard : Skill_Base
         // 标记为充能中，防止重复开启协程
         isRecharging = true;
         // 循环充能：直到当前充能次数等于最大值
-        while (currentChanges < maxCharges)
+        while (currentCharges < maxCharges)
         {
             yield return new WaitForSeconds(cooldown);
-            currentChanges++;
+            currentCharges++;
         }
 
         isRecharging = false;
@@ -156,7 +189,7 @@ public class Skill_Shard : Skill_Base
     private void HandleShardMoving()
     {
         CreateShard();
-        currentShard.MoveTowardsClosesTarget(shardSpeed);
+        currentShard.MoveTowardsClosestTarget(shardSpeed);
 
         SetSkillOnCooldown();// 触发技能冷却
     }
@@ -169,34 +202,7 @@ public class Skill_Shard : Skill_Base
         CreateShard();
         SetSkillOnCooldown();
     }
-    /// <summary>
-    /// 生成碎片核心方法（主逻辑）
-    /// 根据升级类型设置碎片爆炸时间，绑定传送碎片的爆炸回调
-    /// </summary>
-    public void CreateShard()
-    {
-        // 获取碎片爆炸时间
-        float detonateTime = GetDetonateTime();
-
-        GameObject shard = Instantiate(shardPrefab, transform.position, Quaternion.identity);
-        currentShard = shard.GetComponent<SkillObject_Shard>();
-        currentShard.SetupShard(this);
-
-        // 传送/回血回溯碎片：绑定爆炸回调（强制触发冷却）
-        if (Unlocked(SkillUpgradeType.Shard_Teleport) || Unlocked(SkillUpgradeType.Shard_TeleportHpRewind))
-            currentShard.OnExplode += ForceCooldown;
-    }
-    /// <summary>
-    /// 生成原始碎片
-    /// </summary>
-    public void CreateRawShard()
-    {
-        // 判断是否解锁移动/充能碎片升级（决定碎片是否追踪敌人）
-        bool canMove = Unlocked(SkillUpgradeType.Shard_MoveToEnemy) || Unlocked(SkillUpgradeType.Shard_Multicast);
-       
-        GameObject shard = Instantiate(shardPrefab, transform.position, Quaternion.identity);
-        shard.GetComponent<SkillObject_Shard>().SetupShard(this,detonateTime,canMove,shardSpeed);
-    }
+    
     /// <summary>
     /// 获取碎片爆炸时间
     /// 传送类碎片返回长时长，普通碎片返回默认爆炸时间

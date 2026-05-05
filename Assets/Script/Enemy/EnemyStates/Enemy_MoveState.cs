@@ -24,7 +24,7 @@ public class Enemy_MoveState : Enemy_GroundedState
     {
         base.Update();
         // 设置移动速度：向当前面向方向以常规移动速度移动（保持Y轴速度不变）
-        enemy.SetVelocity(enemy.moveSpeed * enemy.facingDir, rb.linearVelocity.y);
+        enemy.SetVelocity(enemy.GetMoveSpeed() * enemy.facingDir, rb.linearVelocity.y);
         // 无地面（即将掉落） 或 检测到墙体 → 停止移动，切换到闲置状态
         if (enemy.groundDetected == false || enemy.wallDetected)
             stateMachine.ChangeState(enemy.idleState);
