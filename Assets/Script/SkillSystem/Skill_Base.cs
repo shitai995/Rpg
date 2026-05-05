@@ -28,6 +28,7 @@ public class Skill_Base : MonoBehaviour
         skillManager = GetComponentInParent<Player_SkillManager>();
         player = GetComponentInParent<Player>();
         lastTimeUsed = lastTimeUsed - cooldown;
+        damageScaleData = new DamageScaleData();    
     }
     /// <summary>
     /// 尝试使用技能（虚方法，子类重写实现具体释放逻辑）
@@ -46,9 +47,10 @@ public class Skill_Base : MonoBehaviour
         upgradeType = upgrade.upgradeType;  // 更新升级类型
         cooldown = upgrade.cooldown;// 更新冷却时间
         damageScaleData = upgrade.damageScaleData;// 关联伤害/元素效果配置
+        ResetCooldown();
     }
     // 检测技能是否可使用
-    public bool CanUseSkill()
+    public virtual bool CanUseSkill()
     {
         // 未升级（未解锁）：不可使用
         if (upgradeType == SkillUpgradeType.None)
@@ -77,9 +79,9 @@ public class Skill_Base : MonoBehaviour
     /// <summary>
     /// 减少技能冷却时间（用于冷却缩减效果）
     /// </summary>
-    public void ResetCooldownBy(float cooldownReduction) => lastTimeUsed = lastTimeUsed + cooldownReduction;
+    public void ReduceCooldownBy(float cooldownReduction) => lastTimeUsed = lastTimeUsed + cooldownReduction;
     // 重置技能冷却
-    public void ResetCooldown() => lastTimeUsed = Time.time;
+    public void ResetCooldown() => lastTimeUsed = Time.time - cooldown;
 
 
 }

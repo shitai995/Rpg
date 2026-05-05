@@ -26,7 +26,7 @@ public class Entity : MonoBehaviour
     public int facingDir { get; private set; } = 1; // 面向方向（1=右，-1=左）
 
     [Header("碰撞检测")]
-    [SerializeField] protected LayerMask whatIsGround; // 地面层掩码
+    public LayerMask whatIsGround; // 地面层掩码
     [SerializeField] private float groundCheckDistance; // 地面检测射线长度
     [SerializeField] private float wallCheckDistance; // 墙壁检测射线长度
     [SerializeField] private Transform groundCheck;
@@ -82,10 +82,15 @@ public class Entity : MonoBehaviour
 
     }
 
-    public virtual void SlowDownEntity(float duration, float slowMultiplier)
+    public virtual void SlowDownEntity(float duration, float slowMultiplier,bool canOverrideSlowEffect = false)
     {
         if(slowDownCo != null)
-            StopCoroutine(slowDownCo);
+        {
+            if (canOverrideSlowEffect)
+                StopCoroutine(slowDownCo);
+            else
+                return;
+        }
 
         slowDownCo = StartCoroutine(SlowDownEntityCo(duration, slowMultiplier));
     }
@@ -93,6 +98,10 @@ public class Entity : MonoBehaviour
     protected virtual IEnumerator SlowDownEntityCo(float duration, float slowMultiplier)
     {
         yield return null;
+    }
+    public virtual void StopSlowDown()
+    {
+        slowDownCo = null;
     }
     /// <summary>
     /// 接收击退指令（对外公开接口）

@@ -6,7 +6,6 @@
 // ========================================================
 
 using System;
-using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
 
 public class SkillObject_Shard : SkillObject_Base
@@ -24,14 +23,15 @@ public class SkillObject_Shard : SkillObject_Base
         if (target == null)
             return;
         // 匀速向目标移动
-        transform.position = Vector3.MoveTowards(transform.position, target.position, speed * Time.deltaTime) ;
+        transform.position = Vector3.MoveTowards(transform.position, target.position, speed * Time.deltaTime);
     }
     /// <summary>
     /// 设置碎片追踪最近目标并指定移动速度
     /// 调用基类FindClosestTarget()查找最近敌人
     /// </summary>
-    public void MoveTowardsClosesTarget(float speed) {
-        target = FindClosestTarget();
+    public void MoveTowardsClosestTarget(float speed,Transform newTarget = null)
+    {
+        target = newTarget == null ?  FindClosestTarget() : newTarget;
         this.speed = speed;
     }
 
@@ -48,14 +48,14 @@ public class SkillObject_Shard : SkillObject_Base
         // 获取碎片爆炸时间
         float detonationTime = shardManager.GetDetonateTime();
         // 定时触发爆炸
-        Invoke(nameof(Explode),detonationTime);
+        Invoke(nameof(Explode), detonationTime);
     }
 
     /// <summary>
     /// 初始化碎片（重载版）
     /// 支持自定义爆炸时间、是否移动、移动速度
     /// </summary>
-    public void SetupShard(Skill_Shard shardManager,float detonationTime,bool canMove,float shardSpeed)
+    public void SetupShard(Skill_Shard shardManager, float detonationTime, bool canMove, float shardSpeed,Transform target = null)
     {
         this.shardManager = shardManager;
         playerStats = shardManager.player.stats;
@@ -64,7 +64,7 @@ public class SkillObject_Shard : SkillObject_Base
         Invoke(nameof(Explode), detonationTime);
         // 开启追踪移动
         if (canMove)
-            MoveTowardsClosesTarget(shardSpeed);
+            MoveTowardsClosestTarget(shardSpeed,target);
     }
     /// <summary>
     /// 碎片爆炸核心方法
@@ -73,7 +73,7 @@ public class SkillObject_Shard : SkillObject_Base
     public void Explode()
     {
         // 1. 调用基类方法，对检测范围内的敌人造成伤害
-        DamageEnemiesInRadius(transform,checkRadius);
+        DamageEnemiesInRadius(transform, checkRadius);
         GameObject vfx = Instantiate(vfxPrefab, transform.position, Quaternion.identity);
         //vfx.GetComponentInChildren<SpriteRenderer>().color = shardManager.player.vfx.GetElementColor(usedElement);
 

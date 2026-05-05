@@ -44,6 +44,21 @@ public abstract class PlayerState : EntityState
             skillManager.dash.SetSkillOnCooldown();
             stateMachine.ChangeState(player.dashState);
         }
+
+        if(input.Player.UltimateSpell.WasPressedThisFrame() && skillManager.domainExpansion.CanUseSkill())
+        {
+            if (skillManager.domainExpansion.InstantDomain())
+            {
+                skillManager.domainExpansion.CreateDomain();
+            }
+            else
+            {
+                stateMachine.ChangeState(player.domainExpansionState);
+            }
+
+            skillManager.domainExpansion.SetSkillOnCooldown();
+        }
+
     }
     public override void UpdateAnimationParameters()
     {
@@ -56,8 +71,15 @@ public abstract class PlayerState : EntityState
     /// </summary>
     private bool CanDash()
     {
-        if (player.wallDetected || stateMachine.currentState == player.dashState || skillManager.dash.CanUseSkill() == false)
+        if (skillManager.dash.CanUseSkill() == false)
             return false;
+
+        if (player.wallDetected)
+            return false;
+
+        if (stateMachine.currentState == player.dashState || stateMachine.currentState == player.domainExpansionState)
+            return false;
+
         return true;
     }
 }

@@ -19,12 +19,18 @@ public class UI_MinHealthBar : MonoBehaviour
 
     private void OnEnable()
     {
+        if (entity == null)
+            return;
+
         entity.OnFlipped += HandleFlip;
     }
 
 
     private void OnDisable()
     {
+        if (entity == null)
+            return;
+
         entity.OnFlipped -= HandleFlip;
     }
     // 翻转实体的缩放（左右翻转）

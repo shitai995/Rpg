@@ -11,5 +11,7 @@ public enum SkillType
 {
     Dash,// 冲刺技能
     TimeEcho,// 时间分身
-    TimeShard// 时间碎片技能
+    TimeShard,// 时间碎片技能
+    SwordThrow,// 投剑
+    DomainExpansion // 领域
 }

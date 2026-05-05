@@ -16,11 +16,13 @@ public class Entity_Health : MonoBehaviour,IDamgable
 
 
     [SerializeField] protected float currentHealth;
-    [SerializeField] protected bool isDead;// 死亡状态标记（保护级便于子类重写）
     [Header("Health regen")]
     [SerializeField] private float regenInterval = 1;
     [SerializeField] private bool canRegenerateHealth = true;
- 
+    public float lastDamageTaken { get; private set; }
+    public bool isDead { get; private set; }// 死亡状态标记（保护级便于子类重写）
+    protected bool canTakeDamage = true;
+
     [Header("普通受击击退参数")]
     [SerializeField] private Vector2 onDamageKnockback = new Vector2(1.5f, 2.5f);// 普通击退力度（X水平，Y垂直）
     [SerializeField] private Vector2 onHeavyDamageKnockback = new Vector2(7, 7);// 重伤击退力度（X水平，Y垂直）
@@ -36,10 +38,16 @@ public class Entity_Health : MonoBehaviour,IDamgable
         entityStats = GetComponent<Entity_Stats>();
         healthBar = GetComponentInChildren<Slider>();
 
+        SetupHealth();
+    }
+
+    private void SetupHealth()
+    {
+        if (entityStats == null)
+            return;
         currentHealth = entityStats.GetMaxHealth();
         UpdateHealthBar();
-
-        InvokeRepeating(nameof(RegenerateHealth),0,regenInterval);
+        InvokeRepeating(nameof(RegenerateHealth), 0, regenInterval);
     }
 
     /// <summary>
@@ -47,7 +55,7 @@ public class Entity_Health : MonoBehaviour,IDamgable
     /// </summary>
     public virtual bool TakeDamage(float damage,float elementalDamage,ElementType element, Transform damageDealer)
     {
-        if (isDead)
+        if (isDead || canTakeDamage == false)
             return false;
 
         if (AttackEvaded())
@@ -60,23 +68,31 @@ public class Entity_Health : MonoBehaviour,IDamgable
         Entity_Stats attackerStats = damageDealer.GetComponent<Entity_Stats>();
         float armorReduction = attackerStats != null ? attackerStats.GetArmorReduction() : 0;
         // 计算物理护甲减伤比例 → 计算实际受到的物理伤害 (护甲越高，物理伤害越低)
-        float mitigation = entityStats.GetArmorMitigation(armorReduction);
-        float physicalDamageTaken = damage * (1 - mitigation);
+        float mitigation = entityStats != null ? entityStats.GetArmorMitigation(armorReduction) : 0;
         // 计算对应元素抗性比例 → 计算实际受到的元素伤害 (抗性越高，元素伤害越低)
-        float resistance = entityStats.GetElementalResistance(element);
+        float resistance = entityStats != null ? entityStats.GetElementalResistance(element) : 0;
+
+        float physicalDamageTaken = damage * (1 - mitigation);
         float elementalDamageTaken = elementalDamage * (1 - resistance);
         // 触发被攻击的击退效果
         TakeKnockback(damageDealer, physicalDamageTaken);
         // 结算总伤害，扣除生命值
         ReduceHealth(physicalDamageTaken + elementalDamageTaken);
-        Debug.Log("Elemental damage taken: " + elementalDamageTaken + "element: " + element);
+        
+        lastDamageTaken = physicalDamageTaken + elementalDamageTaken;
 
         return true;
     }
 
-    
+    public void SetCanTakeDamage(bool canTakeDamage) => this.canTakeDamage = canTakeDamage;
 
-    private bool AttackEvaded() => Random.Range(0, 100) < entityStats.GetEvasion();
+    private bool AttackEvaded()
+    {
+        if (entityStats == null)
+            return false;
+        else
+            return Random.Range(0, 100) < entityStats.GetEvasion();
+    } 
 
     private void RegenerateHealth()
     {
@@ -112,7 +128,7 @@ public class Entity_Health : MonoBehaviour,IDamgable
         
     }
 
-    private void Die()
+    protected virtual void Die()
     {
         isDead = true;
         entity.EntityDeath();
@@ -168,5 +184,11 @@ public class Entity_Health : MonoBehaviour,IDamgable
     /// 判断是否为重伤（表达式体方法简化写法）
     /// 判定规则：单次伤害 / 当前血量 > 重伤阈值 → 判定为重伤
     /// </summary>
-    private bool IsHeavyDamage(float damage) => damage / entityStats.GetMaxHealth() > heavyDamageThreshold;
+    private bool IsHeavyDamage(float damage)
+    {
+        if (entityStats == null)
+            return false;
+        else
+            return damage / entityStats.GetMaxHealth() > heavyDamageThreshold;
+    }
 }

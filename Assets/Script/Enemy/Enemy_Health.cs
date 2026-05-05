@@ -19,10 +19,13 @@ public class Enemy_Health : Entity_Health
     /// </summary>
     public override bool TakeDamage(float damage,float elementalDamage,ElementType element, Transform damageDealer)
     {
+        if (canTakeDamage == false)
+            return false;
+
         // 此处顺序：先触发战斗状态，再扣血（符合“被玩家攻击→进入战斗→受击扣血”的逻辑）
         bool wasHit =  base.TakeDamage(damage,elementalDamage, element, damageDealer);
 
-        if (!wasHit)
+        if (wasHit == false)
             return false;
 
         // 1. 伤害来源判定：仅当伤害来源物体挂载了Player组件时，触发敌人战斗状态

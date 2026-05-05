@@ -19,8 +19,9 @@ public class Player : Entity
     private UI ui;
     public PlayerInputSet input { get; private set; } // 输入集合
     public Player_SkillManager skillManager { get; private set; }
-
     public Player_VFX vfx { get; private set; }
+    public Entity_Health health { get; private set; }
+    public Entity_StatusHandler statusHandler { get; private set; }
     #region State Varisbles
     // 所有玩家状态实例（供状态切换使用）
     public Player_IdleState idleState { get; private set; }
@@ -34,6 +35,8 @@ public class Player : Entity
     public Player_JumpAttackState jumpAttackState { get; private set; }
     public Player_DeadState deadState { get; private set; }
     public Player_CounterAttackState counterAttackState { get; private set; }
+    public Player_SwordThrowState swordThrowState {  get; private set; }
+    public Player_DomainExpansionState domainExpansionState { get; private set; }
     #endregion
     #region 配置参数（Inspector面板设置）
     [Header("攻击相关配置")]
@@ -42,6 +45,11 @@ public class Player : Entity
     public float attackVelocityDuration = .1f; // 攻击速度持续时间
     public float comboResetTime = 1; // 连招重置时间
     public Coroutine queuedAttackCo; // 延迟攻击协程引用
+
+    [Header("Ultimate ability details")]
+    public float riseSpeed = 25;
+    public float riseMaxDistance = 3;
+
 
     [Header("移动相关配置")]
     public float moveSpeed; // 地面移动速度
@@ -55,16 +63,21 @@ public class Player : Entity
     public float dashDuration = .25f; // 冲刺持续时间
     public float dashSpeed = 20; // 冲刺速度
     public Vector2 moveInput { get; private set; } // 移动输入值
+    public Vector2 mousePosition {  get; private set; }// 鼠标位置
     #endregion
 
     protected override void Awake()
     {
         base.Awake();
-        ui = FindAnyObjectByType<UI>();
-        input = new PlayerInputSet();
-        skillManager = GetComponent<Player_SkillManager>();
-        vfx = GetComponent<Player_VFX>();
 
+
+        ui = FindAnyObjectByType<UI>();
+        vfx = GetComponent<Player_VFX>();
+        health = GetComponent<Entity_Health>();
+        skillManager = GetComponent<Player_SkillManager>();
+        statusHandler = GetComponent<Entity_StatusHandler>();
+        
+        input = new PlayerInputSet();
 
         // 初始化所有状态实例
         idleState = new Player_IdleState(this, stateMachine, "idle");
@@ -77,7 +90,10 @@ public class Player : Entity
         basicAttackState = new Player_BasicAttackState(this, stateMachine, "basicAttack");
         jumpAttackState = new Player_JumpAttackState(this, stateMachine, "jumpAttack");
         deadState = new Player_DeadState(this, stateMachine, "dead");
-        counterAttackState = new Player_CounterAttackState(this,stateMachine, "counterAttack"); 
+        counterAttackState = new Player_CounterAttackState(this,stateMachine, "counterAttack");
+        swordThrowState = new Player_SwordThrowState(this, stateMachine, "swordThrow");
+        domainExpansionState = new Player_DomainExpansionState(this, stateMachine, "jumpFall");
+
     }
     /// <summary>
     /// 初始化玩家为待机状态
@@ -161,11 +177,15 @@ public class Player : Entity
     private void OnEnable()
     {
         input.Enable();
+
+        input.Player.Mouse.performed += ctx => mousePosition = ctx.ReadValue<Vector2>();
+
         input.Player.Movement.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
         input.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
 
         input.Player.ToggleSkillTreeUI.performed += ctx => ui.ToggleSkillTreeUI();
         input.Player.Spell.performed += ctx => skillManager.shard.TryUseSkill();
+        input.Player.Spell.performed += ctx => skillManager.timeEcho.TryUseSkill();
     }
 
     /// <summary>

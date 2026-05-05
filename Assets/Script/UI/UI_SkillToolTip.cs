@@ -18,6 +18,7 @@ public class UI_SkillToolTip : UI_ToolTip
 
     [SerializeField] private TextMeshProUGUI skillName;// 技能名称
     [SerializeField] private TextMeshProUGUI skillDescription;// 技能描述文本
+    [SerializeField] private TextMeshProUGUI skillCooldown;// 技能冷却时间
     [SerializeField] private TextMeshProUGUI skillRequirements;// 技能解锁条件文本
 
     [Space]
@@ -57,6 +58,7 @@ public class UI_SkillToolTip : UI_ToolTip
         // 1. 设置技能名称和描述
         skillName.text = node.skillData.displayName;
         skillDescription.text = node.skillData.description;
+        skillCooldown.text = "Cooldown: " + node.skillData.upgradeData.cooldown + " s.";
         // 2. 处理锁定状态：锁定时显示锁定文本，否则显示解锁条件
         string skillLockedText = GetColoredText(importantInfoHex,lockedSkillText);
         string requirements = node.isLocked ? skillLockedText : GetRequirements(node.skillData.cost, node.neededNodes, node.conflictNodes);
