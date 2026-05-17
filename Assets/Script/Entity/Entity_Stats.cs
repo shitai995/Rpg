@@ -11,7 +11,7 @@ using UnityEngine;
 
 public class Entity_Stats : MonoBehaviour
 {
-    public Stat_SetupSO defaultStatSetup;
+    public StatSetupDataSO defaultStatSetup;
 
 
     public Stat_ResourceGroup resources; // 基础最大生命值
@@ -19,9 +19,13 @@ public class Entity_Stats : MonoBehaviour
     public Stat_DefenseGroup defense; // 防御属性分组
     public Stat_MajorGroup major;   // 核心属性分组
 
+    protected virtual void Awake()
+    {
+
+    }
     public AttackData GetAttackData(DamageScaleData scaleData)
     {
-        return new AttackData(this, scaleData); 
+        return new AttackData(this, scaleData);
     }
     /// <summary>
     /// 获取最终元素伤害值，输出本次触发的主元素类型
@@ -101,36 +105,29 @@ public class Entity_Stats : MonoBehaviour
     /// </summary>
     public float GetPhyiscalDamage(out bool isCrit, float scaleFactor = 1)
     {
-        // 1. 计算基础总伤害
-        float baseDamage = offense.damage.GetValue();
-        float bonusDamage = major.strength.GetValue();
-        float totalBaseDamage = baseDamage + bonusDamage;
 
-        // 2. 计算最终暴击概率（并添加边界校验，避免异常值）
-        float baseCritChance = offense.critChance.GetValue();
-        float bonusCritChance = major.agility.GetValue() * .3f;
-        float critChance = baseCritChance + bonusCritChance;
+        float baseDamage = GetBaseDamage();
+        float critChance = GetCritChance();
+        float critPower = GetCritPower() / 100;
 
-        // 3. 计算最终暴击倍率（并添加边界校验，避免暴击倍率低于1倍）
-        float baseCritPower = offense.critPower.GetValue();
-        float bonusCritPower = major.strength.GetValue() * .5f;
-        float critPower = (baseCritPower + bonusCritPower) / 100;
-
-        // 4. 优化随机数判定，使用浮点型重载保证精度
+        // 优化随机数判定，使用浮点型重载保证精度
         isCrit = Random.Range(0, 100) < critChance;
-        float finalDamage = isCrit ? totalBaseDamage * critPower : totalBaseDamage;
+        float finalDamage = isCrit ? baseDamage * critPower : baseDamage;
         // 5. 计算并返回最终伤害
         return finalDamage * scaleFactor;
     }
+    // 1. 计算基础总伤害
+    public float GetBaseDamage() => offense.damage.GetValue() + major.strength.GetValue();
+    // 2. 计算最终暴击概率（并添加边界校验，避免异常值）
+    public float GetCritChance() => offense.critChance.GetValue() + (major.agility.GetValue() * .3f);
+    // 3. 计算最终暴击倍率（并添加边界校验，避免暴击倍率低于1倍）
+    public float GetCritPower() => offense.critPower.GetValue() + (major.strength.GetValue() * .5f);
     /// <summary>
     /// 计算护甲减伤比例（受破甲影响）
     /// </summary>
     public float GetArmorMitigation(float armorReduction)
     {
-        // 1. 计算总护甲值（基础护甲 + 活力属性带来的护甲加成）
-        float baseArmor = defense.armor.GetValue();
-        float bonusArmor = major.vitality.GetValue();
-        float totalArmor = baseArmor + bonusArmor;
+        float totalArmor = GetBaseArmor();
 
         // 2. 计算破甲抵消后的有效护甲
         float reductionMutliplier = Mathf.Clamp(1 - armorReduction, 0, 1);
@@ -144,6 +141,8 @@ public class Entity_Stats : MonoBehaviour
 
         return finalMitigation;
     }
+    // 1. 计算总护甲值（基础护甲 + 活力属性带来的护甲加成）
+    public float GetBaseArmor() => defense.armor.GetValue() + major.vitality.GetValue();
     /// <summary>
     /// 获取最终破甲倍率（转换为0~1的系数）
     /// </summary>

@@ -22,6 +22,8 @@ public class Player : Entity
     public Player_VFX vfx { get; private set; }
     public Entity_Health health { get; private set; }
     public Entity_StatusHandler statusHandler { get; private set; }
+    public Player_Combat combat { get; private set; }
+
     #region State Varisbles
     // 所有玩家状态实例（供状态切换使用）
     public Player_IdleState idleState { get; private set; }
@@ -76,6 +78,7 @@ public class Player : Entity
         health = GetComponent<Entity_Health>();
         skillManager = GetComponent<Player_SkillManager>();
         statusHandler = GetComponent<Entity_StatusHandler>();
+        combat = GetComponent<Player_Combat>();
         
         input = new PlayerInputSet();
 
@@ -183,9 +186,11 @@ public class Player : Entity
         input.Player.Movement.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
         input.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
 
-        input.Player.ToggleSkillTreeUI.performed += ctx => ui.ToggleSkillTreeUI();
-        input.Player.Spell.performed += ctx => skillManager.shard.TryUseSkill();
         input.Player.Spell.performed += ctx => skillManager.timeEcho.TryUseSkill();
+        input.Player.Spell.performed += ctx => skillManager.shard.TryUseSkill();
+   
+        input.Player.ToggleSkillTreeUI.performed += ctx => ui.ToggleSkillTreeUI();
+        input.Player.ToggleInventoryUI.performed += ctx => ui.ToggleInventoryUI();
     }
 
     /// <summary>

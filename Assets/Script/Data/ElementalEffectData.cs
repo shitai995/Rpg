@@ -7,6 +7,7 @@
 
 using System;
 
+[Serializable]
 public class ElementalEffectData 
 {
     public float chillDuration;// 冰冻效果持续时间

@@ -43,5 +43,7 @@ public enum StatType
     // 防御-元素伤害属性
     IceResistance,           // 冰霜抗性（降低冰霜伤害/减速时长）
     FireResistance,          // 火焰抗性（降低火焰伤害/灼烧时长）
-    LightningResistance      // 雷电抗性（修正拼写错误：LightningRestance → LightningResistance，降低雷电伤害/充能速度）
+    LightningResistance,     // 雷电抗性（降低雷电伤害/充能速度）
+
+    ElementalDamage          // 元素伤害
 }

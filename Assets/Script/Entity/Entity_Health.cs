@@ -4,11 +4,14 @@
 // 版本：V1.1
 // 描述：实体血量类
 // ========================================================
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Entity_Health : MonoBehaviour,IDamgable
 {
+    public event Action OnTakingDamage;
+
     private Slider healthBar;
     private Entity entity;
     private Entity_VFX entityVfx;// 实体特效组件（用于播放受击特效）
@@ -16,7 +19,7 @@ public class Entity_Health : MonoBehaviour,IDamgable
 
 
     [SerializeField] protected float currentHealth;
-    [Header("Health regen")]
+    [Header("生命回复")]
     [SerializeField] private float regenInterval = 1;
     [SerializeField] private bool canRegenerateHealth = true;
     public float lastDamageTaken { get; private set; }
@@ -40,7 +43,9 @@ public class Entity_Health : MonoBehaviour,IDamgable
 
         SetupHealth();
     }
-
+    /// <summary>
+    /// 初始化血量与血条
+    /// </summary>
     private void SetupHealth()
     {
         if (entityStats == null)
@@ -81,19 +86,26 @@ public class Entity_Health : MonoBehaviour,IDamgable
         
         lastDamageTaken = physicalDamageTaken + elementalDamageTaken;
 
+        OnTakingDamage?.Invoke();
         return true;
     }
-
+    /// <summary>
+    /// 设置是否可受伤
+    /// </summary>
     public void SetCanTakeDamage(bool canTakeDamage) => this.canTakeDamage = canTakeDamage;
-
+    /// <summary>
+    /// 判断是否闪避成功
+    /// </summary>
     private bool AttackEvaded()
     {
         if (entityStats == null)
             return false;
         else
-            return Random.Range(0, 100) < entityStats.GetEvasion();
-    } 
-
+            return UnityEngine.Random.Range(0, 100) < entityStats.GetEvasion();
+    }
+    /// <summary>
+    /// 定时生命回复
+    /// </summary>
     private void RegenerateHealth()
     {
         if (canRegenerateHealth == false)
@@ -102,6 +114,9 @@ public class Entity_Health : MonoBehaviour,IDamgable
         float regenAmount = entityStats.resources.healthRegen.GetValue();
         IncreaseHealth(regenAmount);
     }
+    /// <summary>
+    /// 治疗：增加血量（不超过上限）
+    /// </summary>
     public void IncreaseHealth(float healAmount)
     {
         if (isDead) 
@@ -133,8 +148,13 @@ public class Entity_Health : MonoBehaviour,IDamgable
         isDead = true;
         entity.EntityDeath();
     }
-
+    /// <summary>
+    /// 获取当前血量百分比
+    /// </summary>
     public float GetHealthPercent() => currentHealth / entityStats.GetMaxHealth();
+    /// <summary>
+    /// 设置血量百分比
+    /// </summary>
     public void SetHealthToPercent(float percent)
     {
         currentHealth = entityStats.GetMaxHealth() * Mathf.Clamp01(percent);

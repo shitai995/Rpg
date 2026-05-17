@@ -27,7 +27,7 @@ public class UI_TreeNode : MonoBehaviour, IPointerEnterHandler,IPointerExitHandl
     public bool isLocked;// 是否被锁定
 
     [Header("技能数据配置")]
-    public Skill_DataSO skillData;// 技能数据
+    public SkillDataSO skillData;// 技能数据
     [SerializeField] private string skillName; // 技能名称
     [SerializeField] private Image skillIcon;// 技能图标Image组件
     [SerializeField] private int skillCost;// 技能解锁消耗
@@ -56,6 +56,9 @@ public class UI_TreeNode : MonoBehaviour, IPointerEnterHandler,IPointerExitHandl
     /// </summary>
     public void Refund()
     {
+        if (isUnlocked == false || skillData.unlockedByDefault)
+            return;
+
         isUnlocked = false;
         isLocked = false;
         UpdateIconColor(GetColorByHex(lockedColorHex));

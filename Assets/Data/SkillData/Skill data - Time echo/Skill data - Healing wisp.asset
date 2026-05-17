@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 893e5ab88f177e44185c13d835881da4, type: 3}
+  m_Name: Skill data - Healing wisp
+  m_EditorClassIdentifier: 
+  displayName: Healing wisp
+  description: "\u5F53\u65F6\u95F4\u56DE\u58F0\u88AB\u654C\u4EBA\u51FB\u6740\u65F6\uFF0C\u5B83\u4F1A\u91CA\u653E\u4E00\u4E2A\u6CBB\u7597\u7CBE\u7075\uFF0C\u5411\u4F60\u79FB\u52A8\u5E76\u5728\u63A5\u89E6\u65F6\u6CBB\u7597\u4F60\u3002"
+  icon: {fileID: -215796218, guid: bc98be45c3d95fb419be01dcd37d077a, type: 3}
+  cost: 2
+  unlockedByDefault: 0
+  skillType: 1
+  upgradeData:
+    upgradeType: 19
+    cooldown: 0
+    damageScaleData:
+      physical: 1
+      elemental: 1
+      chillDuration: 3
+      chillSlowMultiplier: 0.2
+      burnDuration: 3
+      burnDamageSacale: 1
+      shockDuration: 3
+      shockDamageScale: 1
+      shockCharge: 0.4

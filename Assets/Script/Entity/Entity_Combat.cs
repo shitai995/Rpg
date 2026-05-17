@@ -5,10 +5,14 @@
 // 描述：实体战斗核心类
 // ========================================================
 
+using System;
 using UnityEngine;
 
 public class Entity_Combat : MonoBehaviour
 {
+    // 造成物理伤害时触发事件（用于吸血等被动效果）
+    public event Action<float> OnDoingPhysicalDamage;
+
     private Entity_VFX vfx;
     private Entity_Stats stats;
 
@@ -39,20 +43,23 @@ public class Entity_Combat : MonoBehaviour
             // 目标无受击接口，跳过该目标
             if (damegable == null)
                 continue;
-
+            // 获取攻击数据
             AttackData attackData = stats.GetAttackData(basicAttackScale);
             Entity_StatusHandler statusHandler = target.GetComponent<Entity_StatusHandler>();
 
-            float physDamage = attackData.phyiscalDamage;
+            float physicalDamage = attackData.phyiscalDamage;
             float elementalDamage = attackData.elementalDamage;
             ElementType element = attackData.element;
-
-            bool targetGotHit = damegable.TakeDamage(physDamage, elementalDamage, element, transform);
-
+            // 造成伤害
+            bool targetGotHit = damegable.TakeDamage(physicalDamage, elementalDamage, element, transform);
+            // 施加元素效果
             if (element != ElementType.None)
                 target.GetComponent<Entity_StatusHandler>().ApplyStatusEffect(element, attackData.effectData);
             // 5. 目标成功受击时，更新特效颜色+生成受击特效
             if (targetGotHit)
+            {
+                OnDoingPhysicalDamage?.Invoke(physicalDamage);
+            }
                 vfx.CreateOnHitVFX(target.transform, attackData.isCrit, element);
         }
     }

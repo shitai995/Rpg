@@ -7,7 +7,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,26 +30,26 @@ public class UI_TreeConnectHandler : MonoBehaviour
 
     private void Awake()
     {
-        if(connectionImage != null)
+        if (connectionImage != null)
             originalColor = connectionImage.color;
     }
     // 获取当前节点的所有子节点
     public UI_TreeNode[] GetChildNodes()
     {
-        List<UI_TreeNode> childrenToReturn = new List<UI_TreeNode> ();
+        List<UI_TreeNode> childrenToReturn = new List<UI_TreeNode>();
 
         foreach (var node in connectionDetails)
         {
-            if(node.childNode != null)
+            if (node.childNode != null)
                 childrenToReturn.Add(node.childNode.GetComponent<UI_TreeNode>());
         }
 
-        return childrenToReturn.ToArray ();
+        return childrenToReturn.ToArray();
     }
     // 更新当前节点的所有连接线
     private void UpdateConnections()
     {
-        for(int i = 0; i < connectionDetails.Length; i++)
+        for (int i = 0; i < connectionDetails.Length; i++)
         {
             var detail = connectionDetails[i];
             var connection = connections[i];
@@ -58,7 +57,7 @@ public class UI_TreeConnectHandler : MonoBehaviour
             Vector2 targetPosition = connection.GetConnectionPoint(rect);
             Image connectionImage = connection.GetConnectionImage();
             // 设置连接线的方向、长度、旋转偏移
-            connection.DirectConnection(detail.direction, detail.length,detail.rotation);
+            connection.DirectConnection(detail.direction, detail.length, detail.rotation);
             // 4. 同步子节点位置到连接点，并传递连接线Image组件
             if (detail.childNode == null)
                 continue;
@@ -102,7 +101,7 @@ public class UI_TreeConnectHandler : MonoBehaviour
 
         if (connectionDetails.Length != connections.Length)
         {
-            Debug.Log("详细信息数量应与链接数量相同. - " + gameObject.name);
+            //Debug.Log("详细信息数量应与链接数量相同. - " + gameObject.name);
             return;
         }
         UpdateAllConnections();
