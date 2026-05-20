@@ -11,14 +11,9 @@ using UnityEngine;
 [Serializable]
 public class Inventory_EquipmentSlot
 {
-    [Tooltip("插槽类型（武器/护甲/饰品等）")]
     public ItemType slotType;
-
-    [Tooltip("当前穿戴的装备")]
     public Inventory_Item equipedItem;
 
-    /// <summary>
-    /// 判断当前插槽是否有装备
-    /// </summary>
+    public Inventory_Item GetEquipedItem() => equipedItem;
     public bool HasItem() => equipedItem != null && equipedItem.itemData != null;
 }

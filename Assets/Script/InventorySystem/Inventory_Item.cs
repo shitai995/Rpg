@@ -6,34 +6,35 @@
 // ========================================================
 
 using System;
+using System.Text;
+using UnityEngine;
 
 [Serializable]
 public class Inventory_Item
 {
     private string itemId;
 
-    public ItemDataSO itemData;             // 道具基础数据
-    public int stackSize = 1;               // 当前堆叠数量
+    public ItemDataSO itemData;
+    public int stackSize = 1;
 
-    public ItemModifier[] modifiers { get; private set; } // 装备属性加成
-    public ItemEffect_DataSO itemEffect;     // 道具效果
+    public ItemModifier[] modifiers { get; private set; }
+    public ItemEffect_DataSO itemEffect;
 
-    /// <summary>
-    /// 构造函数：通过道具数据创建背包物品
-    /// </summary>
+    public int buyPrice { get; private set; }
+    public float sellPrice { get; private set; }
+
+
     public Inventory_Item(ItemDataSO itemData)
     {
         this.itemData = itemData;
         itemEffect = itemData.itemEffect;
-        modifiers = EquipmentData()?.modifiers;
+        buyPrice = itemData.itemPrice;
+        sellPrice = itemData.itemPrice * .35f;
 
-        // 生成唯一ID
+        modifiers = EquipmentData()?.modifiers;
         itemId = itemData.itemName + " - " + Guid.NewGuid();
     }
 
-    /// <summary>
-    /// 给玩家添加装备属性加成
-    /// </summary>
     public void AddModifiers(Entity_Stats playerStats)
     {
         foreach (var mod in modifiers)
@@ -43,9 +44,6 @@ public class Inventory_Item
         }
     }
 
-    /// <summary>
-    /// 移除玩家身上的装备属性加成
-    /// </summary>
     public void RemoveModifiers(Entity_Stats playerStats)
     {
         foreach (var mod in modifiers)
@@ -55,19 +53,9 @@ public class Inventory_Item
         }
     }
 
-    /// <summary>
-    /// 绑定并启用道具效果
-    /// </summary>
     public void AddItemEffect(Player player) => itemEffect?.Subscribe(player);
-
-    /// <summary>
-    /// 解绑并关闭道具效果
-    /// </summary>
     public void RemoveItemEffect() => itemEffect?.Unsubscribe();
 
-    /// <summary>
-    /// 获取装备数据（如果是装备类型）
-    /// </summary>
     private EquipmentDataSO EquipmentData()
     {
         if (itemData is EquipmentDataSO equipment)
@@ -76,18 +64,103 @@ public class Inventory_Item
         return null;
     }
 
-    /// <summary>
-    /// 是否可堆叠
-    /// </summary>
     public bool CanAddStack() => stackSize < itemData.maxStackSize;
-
-    /// <summary>
-    /// 堆叠+1
-    /// </summary>
     public void AddStack() => stackSize++;
-
-    /// <summary>
-    /// 堆叠-1
-    /// </summary>
     public void RemoveStack() => stackSize--;
+
+    public string GetItemInfo()
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (itemData.itemType == ItemType.Material)
+        {
+            sb.AppendLine("");
+            sb.AppendLine("Used for crafting");
+            sb.AppendLine("");
+            sb.AppendLine("");
+            return sb.ToString();
+        }
+
+
+        if (itemData.itemType == ItemType.Consumable)
+        {
+
+            sb.AppendLine("");
+            sb.AppendLine(itemEffect.effectDescription);
+            sb.AppendLine("");
+            sb.AppendLine("");
+            return sb.ToString();
+        }
+
+
+        sb.AppendLine("");
+
+        foreach (var mod in modifiers)
+        {
+            string modType = GetStatNameByType(mod.statType);
+            string modValue = IsPercentageStat(mod.statType) ? mod.value.ToString() + "%" : mod.value.ToString();
+            sb.AppendLine("+ " + modValue + " " + modType);
+        }
+
+        if (itemEffect != null)
+        {
+            sb.AppendLine("");
+            sb.AppendLine("Unique effect:");
+            sb.AppendLine(itemEffect.effectDescription);
+        }
+
+        sb.AppendLine("");
+        sb.AppendLine("");
+
+        return sb.ToString();
+    }
+
+    private string GetStatNameByType(StatType type)
+    {
+        switch (type)
+        {
+            case StatType.MaxHealth: return "Max Health";
+            case StatType.HealthRegen: return "Health Regeneration";
+            case StatType.Armor: return "Armor";
+            case StatType.Evasion: return "Evasion";
+
+            case StatType.Strength: return "Strength";
+            case StatType.Agility: return "Agility";
+            case StatType.Intelligence: return "Intelligence";
+            case StatType.Vitality: return "Vitality";
+
+            case StatType.AttackSpeed: return "Attack Speed";
+            case StatType.Damage: return "Damage";
+            case StatType.CritChance: return "Critical Chance";
+            case StatType.CritPower: return "Critical Power";
+            case StatType.ArmorReduction: return "Armor Reduction";
+
+            case StatType.FireDamage: return "Fire Damage";
+            case StatType.IceDamage: return "Ice Damage";
+            case StatType.LightningDamage: return "Lightning Damage";
+
+            case StatType.IceResistance: return "Ice Resistance";
+            case StatType.FireResistance: return "Fire Resistance";
+            case StatType.LightningResistance: return "Lightning Resistance";
+            default: return "Unknown Stat";
+        }
+    }
+
+    private bool IsPercentageStat(StatType type)
+    {
+        switch (type)
+        {
+            case StatType.CritChance:
+            case StatType.CritPower:
+            case StatType.ArmorReduction:
+            case StatType.IceResistance:
+            case StatType.FireResistance:
+            case StatType.LightningResistance:
+            case StatType.AttackSpeed:
+            case StatType.Evasion:
+                return true;
+            default:
+                return false;
+        }
+    }
 }

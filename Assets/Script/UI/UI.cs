@@ -6,38 +6,44 @@
 // ========================================================
 
 using UnityEngine;
+
 public class UI : MonoBehaviour
 {
-    // 各类提示框
     public UI_SkillToolTip skillToolTip { get; private set; }
-    public Ui_ItemToolTip itemToolTip { get; private set; }
+    public UI_ItemToolTip itemToolTip { get; private set; }
     public UI_StatToolTip statToolTip { get; private set; }
 
-    // 功能界面
     public UI_SkillTree skillTreeUI { get; private set; }
     public UI_Inventory inventoryUI { get; private set; }
+    public UI_Storage storageUI { get; private set; }
+    public UI_Craft craftUI { get; private set; }
+    public UI_Merchant merchantUI { get; private set; }
 
-    private bool skillTreeEnabled;   // 技能树显示状态
-    private bool inventoryEnabled;   // 背包显示状态
+    private bool skillTreeEnabled;
+    private bool inventoryEnabled;
 
     private void Awake()
     {
-        // 获取所有子物体中的UI组件
-        itemToolTip = GetComponentInChildren<Ui_ItemToolTip>();
+        itemToolTip = GetComponentInChildren<UI_ItemToolTip>();
         skillToolTip = GetComponentInChildren<UI_SkillToolTip>();
         statToolTip = GetComponentInChildren<UI_StatToolTip>();
 
         skillTreeUI = GetComponentInChildren<UI_SkillTree>(true);
         inventoryUI = GetComponentInChildren<UI_Inventory>(true);
+        storageUI = GetComponentInChildren<UI_Storage>(true);
+        craftUI = GetComponentInChildren<UI_Craft>(true);
+        merchantUI = GetComponentInChildren<UI_Merchant>(true);
 
-        // 记录初始显示状态
         skillTreeEnabled = skillTreeUI.gameObject.activeSelf;
         inventoryEnabled = inventoryUI.gameObject.activeSelf;
     }
 
-    /// <summary>
-    /// 切换技能树界面显示/隐藏，并关闭提示框
-    /// </summary>
+    public void SwitchOffAllTooltips()
+    {
+        itemToolTip.ShowToolTip(false, null);
+        skillToolTip.ShowToolTip(false, null);
+        statToolTip.ShowToolTip(false, null);
+    }
     public void ToggleSkillTreeUI()
     {
         skillTreeEnabled = !skillTreeEnabled;
@@ -45,9 +51,6 @@ public class UI : MonoBehaviour
         skillToolTip.ShowToolTip(false, null);
     }
 
-    /// <summary>
-    /// 切换背包界面显示/隐藏，并关闭所有提示框
-    /// </summary>
     public void ToggleInventoryUI()
     {
         inventoryEnabled = !inventoryEnabled;

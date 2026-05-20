@@ -82,7 +82,7 @@ public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHand
     /// <summary>
     /// 鼠标进入  显示物品提示框
     /// </summary>
-    public void OnPointerEnter(PointerEventData eventData)
+    public virtual void OnPointerEnter(PointerEventData eventData)
     {
         if (itemInSlot == null)
             return;

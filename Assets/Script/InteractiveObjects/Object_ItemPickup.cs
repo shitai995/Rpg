@@ -9,42 +9,71 @@ using UnityEngine;
 
 public class Object_ItemPickup : MonoBehaviour
 {
-    [Tooltip("拾取后获得的道具数据")]
+
+    [SerializeField] private Vector2 dropForce = new Vector2(3, 10);
     [SerializeField] private ItemDataSO itemData;
 
-    private SpriteRenderer sr;
-    private Inventory_Item itemToAdd;   // 待添加的背包物品实例
-    private Inventory_Base inventory;   // 玩家背包组件
-
-    private void Awake()
-    {
-        // 根据道具数据创建可存入背包的物品实例
-        itemToAdd = new Inventory_Item(itemData);
-    }
-
+    [Space]
+    [SerializeField] private SpriteRenderer sr;
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private Collider2D col;
     private void OnValidate()
     {
-        // 编辑器模式下自动更新图标与物体名称
-        if (itemData == null) return;
+        if (itemData == null)
+            return;
 
         sr = GetComponent<SpriteRenderer>();
+        SetupVisuals();
+    }
+
+
+    public void SetupItem(ItemDataSO itemData)
+    {
+        this.itemData = itemData;
+        SetupVisuals();
+
+        float xDropForce = Random.Range(-dropForce.x, dropForce.x);
+        rb.linearVelocity = new Vector2(xDropForce, dropForce.y);
+        col.isTrigger = false;
+    }
+
+
+    private void SetupVisuals()
+    {
         sr.sprite = itemData.itemIcon;
         gameObject.name = "Object_ItemPickup - " + itemData.itemName;
     }
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Ground") && col.isTrigger == false)
+        {
+            col.isTrigger = true;
+            rb.constraints = RigidbodyConstraints2D.FreezeAll;
+        }
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // 获取触碰目标的背包组件
-        inventory = collision.GetComponent<Inventory_Base>();
-        if (inventory == null) return;
+        Inventory_Player inventory = collision.GetComponent<Inventory_Player>();
 
-        // 检查背包是否可添加（有空位 or 可堆叠）
-        bool canAddItem = inventory.CanAddItem() || inventory.StackableItem(itemToAdd) != null;
+        if (inventory == null)
+            return;
 
-        if (canAddItem)
+        Inventory_Item itemToAdd = new Inventory_Item(itemData);
+        Inventory_Storage storage = inventory.storage;
+
+        if (itemData.itemType == ItemType.Material)
         {
-            inventory.AddItem(itemToAdd);  // 添加到背包
-            Destroy(gameObject);           // 销毁拾取物
+            storage.AddMaterialToStash(itemToAdd);
+            Destroy(gameObject);
+            return;
+        }
+
+        if (inventory.CanAddItem(itemToAdd))
+        {
+            inventory.AddItem(itemToAdd);
+            Destroy(gameObject);
         }
     }
 }

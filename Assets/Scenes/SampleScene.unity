@@ -8837,7 +8837,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fa377e2b9bc09447826dd476403575e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dropForce: {x: 3, y: 10}
   itemData: {fileID: 11400000, guid: 55c2daed47eb5c440ae6cf84e58cfcd7, type: 2}
+  sr: {fileID: 553787788}
+  rb: {fileID: 0}
+  col: {fileID: 0}
 --- !u!212 &553787788
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -9595,7 +9599,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fa377e2b9bc09447826dd476403575e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dropForce: {x: 3, y: 10}
   itemData: {fileID: 11400000, guid: 6ad5486d8542af5469b1cb0c2a1d0c78, type: 2}
+  sr: {fileID: 594668807}
+  rb: {fileID: 0}
+  col: {fileID: 0}
 --- !u!212 &594668807
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -12431,7 +12439,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fa377e2b9bc09447826dd476403575e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dropForce: {x: 3, y: 10}
   itemData: {fileID: 11400000, guid: d8d87f2e8559c47428bac695cbc5dc86, type: 2}
+  sr: {fileID: 823136948}
+  rb: {fileID: 0}
+  col: {fileID: 0}
 --- !u!212 &823136948
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -16450,7 +16462,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fa377e2b9bc09447826dd476403575e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dropForce: {x: 3, y: 10}
   itemData: {fileID: 11400000, guid: a1fb17e2f003e0649a598d1f4578f3c5, type: 2}
+  sr: {fileID: 1035885735}
+  rb: {fileID: 0}
+  col: {fileID: 0}
 --- !u!212 &1035885735
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -20640,6 +20656,9 @@ MonoBehaviour:
   itemName: {fileID: 1710688599}
   itemType: {fileID: 1907153645}
   itemInfo: {fileID: 1876223038}
+  itemPrice: {fileID: 0}
+  merchnatInfo: {fileID: 0}
+  inventoryInfo: {fileID: 0}
 --- !u!1 &1302116480
 GameObject:
   m_ObjectHideFlags: 0
@@ -24024,7 +24043,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fa377e2b9bc09447826dd476403575e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dropForce: {x: 3, y: 10}
   itemData: {fileID: 11400000, guid: 10933ed8f51939b4ab92589dc45d4525, type: 2}
+  sr: {fileID: 1518814635}
+  rb: {fileID: 0}
+  col: {fileID: 0}
 --- !u!212 &1518814635
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -33158,7 +33181,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fa377e2b9bc09447826dd476403575e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dropForce: {x: 3, y: 10}
   itemData: {fileID: 11400000, guid: 55c2daed47eb5c440ae6cf84e58cfcd7, type: 2}
+  sr: {fileID: 1666808318}
+  rb: {fileID: 0}
+  col: {fileID: 0}
 --- !u!212 &1666808318
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -36946,7 +36973,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fa377e2b9bc09447826dd476403575e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dropForce: {x: 3, y: 10}
   itemData: {fileID: 11400000, guid: 05c1301c8ef6065468a641535386100f, type: 2}
+  sr: {fileID: 1879083814}
+  rb: {fileID: 0}
+  col: {fileID: 0}
 --- !u!212 &1879083814
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -92728,6 +92759,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxInventorySize: 10
   itemList: []
+  gold: 10000
   equipList:
   - slotType: 1
     equipedItem:
@@ -93446,7 +93478,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fa377e2b9bc09447826dd476403575e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dropForce: {x: 3, y: 10}
   itemData: {fileID: 11400000, guid: 37202b89bac21ac409032a3e0c5b9eb9, type: 2}
+  sr: {fileID: 2068507994}
+  rb: {fileID: 0}
+  col: {fileID: 0}
 --- !u!212 &2068507994
 SpriteRenderer:
   m_ObjectHideFlags: 0
