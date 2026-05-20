@@ -101,7 +101,7 @@ public class Inventory_Base : MonoBehaviour
     /// <summary>
     /// 根据道具数据查找背包内道具
     /// </summary>
-    public Inventory_Item FindItem(ItemDataSo itemData)
+    public Inventory_Item FindItem(ItemDataSO itemData)
     {
         return itemList.Find(item => item.itemData == itemData);
     }

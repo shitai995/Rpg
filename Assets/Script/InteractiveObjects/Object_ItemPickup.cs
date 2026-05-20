@@ -10,7 +10,7 @@ using UnityEngine;
 public class Object_ItemPickup : MonoBehaviour
 {
     [Tooltip("拾取后获得的道具数据")]
-    [SerializeField] private ItemDataSo itemData;
+    [SerializeField] private ItemDataSO itemData;
 
     private SpriteRenderer sr;
     private Inventory_Item itemToAdd;   // 待添加的背包物品实例

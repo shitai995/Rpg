@@ -10,7 +10,7 @@ using UnityEngine;
 
 [CreateAssetMenu(menuName = "RPG Setup/Item Data/Equipment item", fileName = "Equipment data - ")]
 
-public class EquipmentDataSo : ItemDataSo
+public class EquipmentDataSO : ItemDataSO
 {
     [Header("装备属性修饰")]
     [Tooltip("装备提供的属性加成列表")]

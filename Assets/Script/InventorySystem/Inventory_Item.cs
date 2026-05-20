@@ -12,7 +12,7 @@ public class Inventory_Item
 {
     private string itemId;
 
-    public ItemDataSo itemData;             // 道具基础数据
+    public ItemDataSO itemData;             // 道具基础数据
     public int stackSize = 1;               // 当前堆叠数量
 
     public ItemModifier[] modifiers { get; private set; } // 装备属性加成
@@ -21,7 +21,7 @@ public class Inventory_Item
     /// <summary>
     /// 构造函数：通过道具数据创建背包物品
     /// </summary>
-    public Inventory_Item(ItemDataSo itemData)
+    public Inventory_Item(ItemDataSO itemData)
     {
         this.itemData = itemData;
         itemEffect = itemData.itemEffect;
@@ -68,9 +68,9 @@ public class Inventory_Item
     /// <summary>
     /// 获取装备数据（如果是装备类型）
     /// </summary>
-    private EquipmentDataSo EquipmentData()
+    private EquipmentDataSO EquipmentData()
     {
-        if (itemData is EquipmentDataSo equipment)
+        if (itemData is EquipmentDataSO equipment)
             return equipment;
 
         return null;
