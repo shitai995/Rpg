@@ -2,111 +2,114 @@
 // 作者：娇娇 
 // 创建时间：2026-05-22 12:14:52
 // 版本：V1.1
-// 描述：
+// 描述：文件数据读写处理器，实现游戏存档的保存、读取、删除与简易加解密
 // ========================================================
 
-using NUnit.Framework.Interfaces;
 using System;
-using System.ComponentModel;
 using System.IO;
 using UnityEngine;
 
+/// <summary>
+/// 本地文件数据读写工具类
+/// </summary>
 public class FileDataHandler
 {
-    private string fullPath;
-    private bool encrpyData;
-    private string codeWord = "unityalexdev.com";
+    private string fullPath;       // 存档文件完整路径
+    private bool encrpyData;       // 是否开启数据加密
+    private readonly string codeWord = "unityalexdev.com"; // 加解密密钥
 
+    /// <summary>
+    /// 构造函数，初始化存档路径与加密配置
+    /// </summary>
     public FileDataHandler(string dataDirPath, string dataFileName, bool encryptData)
     {
         fullPath = Path.Combine(dataDirPath, dataFileName);
         this.encrpyData = encryptData;
     }
 
+    /// <summary>
+    /// 保存游戏数据到本地文件
+    /// </summary>
     public void SaveData(GameData gameData)
     {
         try
         {
-            // 1. Create directory if it doesn't exist
+            // 不存在目录则创建
             Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
-
-            // 2. Convert GameData to JSON string
+            // 序列化为JSON
             string dataToSave = JsonUtility.ToJson(gameData, true);
 
+            // 加密数据
             if (encrpyData)
                 dataToSave = EncryptDecrypt(dataToSave);
 
-            // 3. Open/create a new file
+            // 写入文件
             using (FileStream stream = new FileStream(fullPath, FileMode.Create))
+            using (StreamWriter write = new StreamWriter(stream))
             {
-                // 4. Write the JSON text to the file
-                using (StreamWriter write = new StreamWriter(stream))
-                {
-                    write.Write(dataToSave);
-                }
+                write.Write(dataToSave);
             }
         }
-
         catch (Exception e)
         {
-            // Log any error that happens
-            Debug.LogError("Error on trying to save data to file: " + fullPath + "\n" + e);
+            Debug.LogError($"保存存档失败：{fullPath}\n{e}");
         }
     }
 
+    /// <summary>
+    /// 从本地文件读取游戏数据
+    /// </summary>
     public GameData LoadData()
     {
         GameData loadData = null;
+        // 检测文件是否存在
+        if (!File.Exists(fullPath))
+            return loadData;
 
-        //  1. Check if the save file exists
-        if (File.Exists(fullPath))
+        try
         {
-            try
+            string dataToLoad;
+            // 读取文件内容
+            using (FileStream stream = new FileStream(fullPath, FileMode.Open))
+            using (StreamReader reader = new StreamReader(stream))
             {
-                string dataToLoad = "";
-
-                //  2. Open the file 
-                using (FileStream stream = new FileStream(fullPath, FileMode.Open))
-                {
-                    // 3. Read file's text content
-                    using (StreamReader reader = new StreamReader(stream))
-                    {
-                        dataToLoad = reader.ReadToEnd();
-                    }
-                }
-
-                if (encrpyData)
-                    dataToLoad = EncryptDecrypt(dataToLoad);
-
-                // 4. Convert the JSON string back into a GameData object
-                loadData = JsonUtility.FromJson<GameData>(dataToLoad);
+                dataToLoad = reader.ReadToEnd();
             }
 
-            catch (Exception e)
-            {   // Log any error that happens
-                Debug.LogError("Error on trying to load data from file: " + fullPath + "\n" + e);
-            }
+            // 解密数据
+            if (encrpyData)
+                dataToLoad = EncryptDecrypt(dataToLoad);
+
+            // 反序列化为数据对象
+            loadData = JsonUtility.FromJson<GameData>(dataToLoad);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"读取存档失败：{fullPath}\n{e}");
         }
 
         return loadData;
     }
 
+    /// <summary>
+    /// 删除当前存档文件
+    /// </summary>
     public void Delete()
     {
         if (File.Exists(fullPath))
             File.Delete(fullPath);
     }
 
-
+    /// <summary>
+    /// 异或加解密（加密/解密逻辑一致）
+    /// </summary>
     private string EncryptDecrypt(string data)
     {
-        string modifedData = "";
-
+        string modifedData = string.Empty;
         for (int i = 0; i < data.Length; i++)
         {
             modifedData += (char)(data[i] ^ codeWord[i % codeWord.Length]);
         }
-
         return modifedData;
     }
 }

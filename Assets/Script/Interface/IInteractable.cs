@@ -2,12 +2,15 @@
 // 作者：娇娇 
 // 创建时间：2026-05-20 14:21:40
 // 版本：V1.1
-// 描述：
+// 描述：可交互物体接口
 // ========================================================
 
 using UnityEngine;
 
-public interface IInteractable 
+public interface IInteractable
 {
-    public void Interact();
+    /// <summary>
+    /// 执行交互逻辑
+    /// </summary>
+    void Interact();
 }

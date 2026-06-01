@@ -2,47 +2,49 @@
 // 作者：娇娇 
 // 时间：2026-03-07
 // 版本：V1.1
-// 描述：UI核心管理器（统一管理所有界面、提示框、开关逻辑）
+// 描述：UI核心管理器，统一管控所有界面、悬浮提示、界面切换与玩家输入锁定
 // ========================================================
 
 using UnityEngine;
 
 /// <summary>
 /// 全局UI总控制器
-/// 负责管理所有子界面：背包、技能树、储物、合成、商店、提示框
+/// 统一管理背包、技能树、仓库、合成、商店、设置面板及各类悬浮提示
 /// </summary>
 public class UI : MonoBehaviour
 {
     [SerializeField] private GameObject[] uiElements;
-    public bool alternativeInput {  get; private set; }
+    public bool alternativeInput { get; private set; }
     private PlayerInputSet input;
-    #region UI
-    // 各类提示框
+
+    #region 提示框引用
     public UI_SkillToolTip skillToolTip { get; private set; }
     public UI_ItemToolTip itemToolTip { get; private set; }
     public UI_StatToolTip statToolTip { get; private set; }
+    #endregion
 
-    // 功能界面
+    #region 功能界面引用
     public UI_SkillTree skillTreeUI { get; private set; }
     public UI_Inventory inventoryUI { get; private set; }
     public UI_Storage storageUI { get; private set; }
     public UI_Craft craftUI { get; private set; }
     public UI_Merchant merchantUI { get; private set; }
-    public UI_InGame inGameUI {  get; private set; }
+    public UI_InGame inGameUI { get; private set; }
     public UI_Options optionsUI { get; private set; }
     #endregion
+
     // 界面开关状态
     private bool skillTreeEnabled;
     private bool inventoryEnabled;
 
     private void Awake()
     {
-        // 获取所有提示框
+        // 获取所有悬浮提示组件
         itemToolTip = GetComponentInChildren<UI_ItemToolTip>();
         skillToolTip = GetComponentInChildren<UI_SkillToolTip>();
         statToolTip = GetComponentInChildren<UI_StatToolTip>();
 
-        // 获取所有功能界面（包含隐藏对象）
+        // 获取所有功能界面（包含隐藏物体）
         skillTreeUI = GetComponentInChildren<UI_SkillTree>(true);
         inventoryUI = GetComponentInChildren<UI_Inventory>(true);
         storageUI = GetComponentInChildren<UI_Storage>(true);
@@ -51,26 +53,36 @@ public class UI : MonoBehaviour
         inGameUI = GetComponentInChildren<UI_InGame>(true);
         optionsUI = GetComponentInChildren<UI_Options>(true);
 
-        // 记录初始激活状态
+        // 记录界面初始激活状态
         skillTreeEnabled = skillTreeUI.gameObject.activeSelf;
         inventoryEnabled = inventoryUI.gameObject.activeSelf;
     }
-    public void Start()
+
+    private void Start()
     {
         skillTreeUI.UnlockDefaultSkills();
     }
+
+    /// <summary>
+    /// 绑定输入事件，注册UI快捷键
+    /// </summary>
     public void SetupControlsUI(PlayerInputSet inputSet)
     {
         input = inputSet;
 
-        input.UI.SkillTreeUI.performed += ctx => ToggleSkillTreeUI();
-        input.UI.InventoryUI.performed += ctx => ToggleInventoryUI();
+        // 技能树开关
+        input.UI.SkillTreeUI.performed += _ => ToggleSkillTreeUI();
+        // 背包开关
+        input.UI.InventoryUI.performed += _ => ToggleInventoryUI();
 
-        input.UI.AlternativeInput.performed += ctx => alternativeInput = true;
-        input.UI.AlternativeInput.canceled += ctx => alternativeInput = false;
+        // 备用输入按键状态
+        input.UI.AlternativeInput.performed += _ => alternativeInput = true;
+        input.UI.AlternativeInput.canceled += _ => alternativeInput = false;
 
-        input.UI.OptionsUI.performed += ctx =>
+        // 设置面板开关
+        input.UI.OptionsUI.performed += _ =>
         {
+            // 存在已打开界面则关闭并恢复游戏
             foreach (var element in uiElements)
             {
                 if (element.activeSelf)
@@ -80,17 +92,25 @@ public class UI : MonoBehaviour
                     return;
                 }
             }
+            // 无界面则暂停游戏并打开设置
             Time.timeScale = 0;
             OpenOptionsUI();
         };
     }
+
+    /// <summary>
+    /// 打开设置面板
+    /// </summary>
     public void OpenOptionsUI()
     {
         HideAllTooltips();
         StopPlayerControls(true);
         SwitchTo(optionsUI.gameObject);
-
     }
+
+    /// <summary>
+    /// 切回游戏主界面，关闭所有弹窗
+    /// </summary>
     public void SwitchToInGameUI()
     {
         HideAllTooltips();
@@ -100,13 +120,21 @@ public class UI : MonoBehaviour
         skillTreeEnabled = false;
         inventoryEnabled = false;
     }
+
+    /// <summary>
+    /// 关闭所有UI，仅激活指定界面
+    /// </summary>
     private void SwitchTo(GameObject objectToSwitchOn)
     {
         foreach (var element in uiElements)
-            element.gameObject.SetActive(false);
+            element.SetActive(false);
 
         objectToSwitchOn.SetActive(true);
     }
+
+    /// <summary>
+    /// 启用/禁用玩家移动、技能等操控
+    /// </summary>
     private void StopPlayerControls(bool stopControls)
     {
         if (stopControls)
@@ -114,9 +142,13 @@ public class UI : MonoBehaviour
         else
             input.Player.Enable();
     }
+
+    /// <summary>
+    /// 根据当前界面状态，判断是否需要锁定玩家操控
+    /// </summary>
     private void StopPlayerControlsIfNeeded()
     {
-        foreach(var element in uiElements)
+        foreach (var element in uiElements)
         {
             if (element.activeSelf)
             {
@@ -128,7 +160,7 @@ public class UI : MonoBehaviour
     }
 
     /// <summary>
-    /// 开关技能树界面
+    /// 切换技能树界面显隐
     /// </summary>
     public void ToggleSkillTreeUI()
     {
@@ -143,7 +175,7 @@ public class UI : MonoBehaviour
     }
 
     /// <summary>
-    /// 开关背包界面
+    /// 切换背包界面显隐
     /// </summary>
     public void ToggleInventoryUI()
     {
@@ -152,33 +184,41 @@ public class UI : MonoBehaviour
 
         inventoryEnabled = !inventoryEnabled;
         inventoryUI.gameObject.SetActive(inventoryEnabled);
-
-        // 关闭所有悬浮提示
         HideAllTooltips();
 
         StopPlayerControlsIfNeeded();
     }
+
+    /// <summary>
+    /// 开启/关闭仓库界面
+    /// </summary>
     public void OpenStorageUI(bool openStorageUI)
     {
-        storageUI.gameObject.SetActive(openStorageUI);  
+        storageUI.gameObject.SetActive(openStorageUI);
         StopPlayerControls(openStorageUI);
-        if(openStorageUI == false)
+
+        // 关闭仓库时同步关闭合成界面与提示
+        if (!openStorageUI)
         {
-            craftUI.gameObject.SetActive(false);    
+            craftUI.gameObject.SetActive(false);
             HideAllTooltips();
         }
     }
 
+    /// <summary>
+    /// 开启/关闭商店界面
+    /// </summary>
     public void OpenMerchantUI(bool openMerchantUI)
     {
         merchantUI.gameObject.SetActive(openMerchantUI);
-        StopPlayerControls(merchantUI);
+        StopPlayerControls(openMerchantUI);
 
-        if (openMerchantUI == false)
+        if (!openMerchantUI)
             HideAllTooltips();
     }
+
     /// <summary>
-    /// 强制关闭所有悬浮提示（物品/技能/属性）
+    /// 关闭所有悬浮提示（物品/技能/属性）
     /// </summary>
     public void HideAllTooltips()
     {
@@ -186,11 +226,14 @@ public class UI : MonoBehaviour
         skillToolTip.ShowToolTip(false, null);
         statToolTip.ShowToolTip(false, null);
     }
+
+    /// <summary>
+    /// 把所有提示框层级置到最顶层
+    /// </summary>
     private void SetToolTipsAsLastSibling()
     {
         itemToolTip.transform.SetAsLastSibling();
         skillToolTip.transform.SetAsLastSibling();
         statToolTip.transform.SetAsLastSibling();
     }
-
 }

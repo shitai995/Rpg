@@ -2,15 +2,18 @@
 // 作者：娇娇 
 // 创建时间：2026-05-29 22:29:00
 // 版本：V1.1
-// 描述：
+// 描述：重生/传送类型枚举
 // ========================================================
 
 using UnityEngine;
 
+/// <summary>
+/// 重生与传送类型
+/// </summary>
 public enum RespawnType
 {
-    Enter,
-    Exit,
-    NonSpecific,
-    Portal
+    Enter,        // 进入场景
+    Exit,         // 离开场景
+    NonSpecific,  // 无指定类型
+    Portal        // 传送门
 }

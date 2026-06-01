@@ -2,80 +2,88 @@
 // 作者：娇娇 
 // 创建时间：2026-05-20 14:22:43
 // 版本：V1.1
-// 描述：
+// 描述：实体掉落物管理器，处理物品掉落、概率与稀有度限制
 // ========================================================
 
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+/// <summary>
+/// 实体掉落管理组件
+/// </summary>
 public class Entity_DropManager : MonoBehaviour
 {
-    [SerializeField] private GameObject itemDropPrefab;
-    [SerializeField] private ItemListDataSO dropData;
+    [SerializeField] private GameObject itemDropPrefab; // 掉落物预制体
+    [SerializeField] private ItemListDataSO dropData;  // 掉落物品配置表
 
-    [Header("Drop restrctions")]
-    [SerializeField] private int maxRarityAmount = 1200;
-    [SerializeField] private int maxItemsToDrop = 3;
+    [Header("掉落限制")]
+    [SerializeField] private int maxRarityAmount = 1200; // 稀有度总值上限
+    [SerializeField] private int maxItemsToDrop = 3;      // 最大掉落物品数量
 
     private void Update()
     {
+        // 按X键测试掉落
         if (Input.GetKeyDown(KeyCode.X))
             DropItems();
     }
 
+    /// <summary>
+    /// 执行物品掉落逻辑
+    /// </summary>
     public virtual void DropItems()
     {
         if (dropData == null)
         {
-            Debug.Log("You need to assign drop data on entity" + gameObject.name);
+            Debug.Log($"请为 {gameObject.name} 配置掉落数据");
             return;
         }
 
         List<ItemDataSO> itemsToDrop = RollDrops();
-        int amountToDrop = Mathf.Min(itemsToDrop.Count, maxItemsToDrop);
+        int dropCount = Mathf.Min(itemsToDrop.Count, maxItemsToDrop);
 
-        for (int i = 0; i < amountToDrop; i++)
+        for (int i = 0; i < dropCount; i++)
         {
             CreateItemDrop(itemsToDrop[i]);
         }
-
     }
 
+    /// <summary>
+    /// 生成掉落物实例
+    /// </summary>
     protected void CreateItemDrop(ItemDataSO itemToDrop)
     {
-        GameObject newItem = Instantiate(itemDropPrefab,transform.position,Quaternion.identity);
+        GameObject newItem = Instantiate(itemDropPrefab, transform.position, Quaternion.identity);
         newItem.GetComponent<Object_ItemPickup>().SetupItem(itemToDrop);
     }
 
+    /// <summary>
+    /// 掉落概率判定与筛选
+    /// </summary>
     public List<ItemDataSO> RollDrops()
     {
-       
-
         List<ItemDataSO> possibleDrops = new List<ItemDataSO>();
         List<ItemDataSO> finalDrops = new List<ItemDataSO>();
-        float maxRarityAmount = this.maxRarityAmount;
+        float remainingRarity = maxRarityAmount;
 
-        // Step 1: Roll each item based on rarity and max drop chance
+        // 1. 根据掉落概率筛选候选物品
         foreach (var item in dropData.itemList)
         {
             float dropChance = item.GetDropChance();
-
-            if(Random.Range(0,100) <= dropChance)
+            if (Random.Range(0, 100) <= dropChance)
                 possibleDrops.Add(item);
         }
 
-        // Step 2: Sort by rarity (highest to lowest)
+        // 2. 按稀有度从高到低排序
         possibleDrops = possibleDrops.OrderByDescending(item => item.itemRarity).ToList();
 
-        // Step 3: Add items to final drop list until rarity limit on entity is reached
-
-        foreach (var item in possibleDrops) 
-        {                                   
-            if (maxRarityAmount > item.itemRarity)
+        // 3. 按稀有度总值上限筛选最终掉落列表
+        foreach (var item in possibleDrops)
+        {
+            if (remainingRarity > item.itemRarity)
             {
                 finalDrops.Add(item);
-                maxRarityAmount = maxRarityAmount - item.itemRarity;
+                remainingRarity -= item.itemRarity;
             }
         }
 
