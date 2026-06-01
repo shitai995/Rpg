@@ -42,11 +42,14 @@ public class Skill_Base : MonoBehaviour
     /// 设置技能升级数据（由技能管理器调用）
     /// 覆盖冷却时间、升级类型、伤害倍率配置
     /// </summary>
-    public void SetSkillUpgrade(UpgradeData upgrade)
+    public void SetSkillUpgrade(SkillDataSO skillData)
     {
+        UpgradeData upgrade = skillData.upgradeData;
         upgradeType = upgrade.upgradeType;  // 更新升级类型
         cooldown = upgrade.cooldown;// 更新冷却时间
         damageScaleData = upgrade.damageScaleData;// 关联伤害/元素效果配置
+
+        player.ui.inGameUI.GetSkillSlot(skillType).SetupSkillSlot(skillData);
         ResetCooldown();
     }
     // 检测技能是否可使用
@@ -67,6 +70,8 @@ public class Skill_Base : MonoBehaviour
     /// 检测技能是否解锁到指定升级类型
     /// </summary>
     protected bool Unlocked(SkillUpgradeType upgradeToCheck) => upgradeType == upgradeToCheck;
+    public SkillUpgradeType GetUpgrade() => upgradeType;
+    public SkillType GetSkillType() => skillType;
     /// <summary>
     /// 检测技能是否处于冷却中
     /// </summary>
@@ -75,13 +80,22 @@ public class Skill_Base : MonoBehaviour
     /// 将技能设为冷却状态（技能释放后调用）
     /// 记录当前时间为上次使用时间
     /// </summary>
-    public void SetSkillOnCooldown() => lastTimeUsed = Time.time;
+    public void SetSkillOnCooldown()
+    {
+        player.ui.inGameUI.GetSkillSlot(skillType).StartCooldown(cooldown);
+        lastTimeUsed = Time.time;
+    } 
     /// <summary>
     /// 减少技能冷却时间（用于冷却缩减效果）
     /// </summary>
     public void ReduceCooldownBy(float cooldownReduction) => lastTimeUsed = lastTimeUsed + cooldownReduction;
     // 重置技能冷却
-    public void ResetCooldown() => lastTimeUsed = Time.time - cooldown;
+    public void ResetCooldown()
+    {
+        player.ui.inGameUI.GetSkillSlot(skillType).ResetCooldown();
+        lastTimeUsed = Time.time - cooldown;
+    }  
+
 
 
 }

@@ -14,15 +14,18 @@ using UnityEngine;
 /// </summary>
 public class Player : Entity
 {
+    public static Player instance;
     public static event Action OnPlayerDeath;
 
-    private UI ui;
+    public UI ui {  get; private set; }
     public PlayerInputSet input { get; private set; } // 输入集合
     public Player_SkillManager skillManager { get; private set; }
     public Player_VFX vfx { get; private set; }
     public Entity_Health health { get; private set; }
     public Entity_StatusHandler statusHandler { get; private set; }
     public Player_Combat combat { get; private set; }
+    public Inventory_Player inventory { get; private set; }
+    public Player_Stats stats { get; private set; }
 
     #region State Varisbles
     // 所有玩家状态实例（供状态切换使用）
@@ -71,7 +74,7 @@ public class Player : Entity
     protected override void Awake()
     {
         base.Awake();
-
+        instance = this;
 
         ui = FindAnyObjectByType<UI>();
         vfx = GetComponent<Player_VFX>();
@@ -79,8 +82,11 @@ public class Player : Entity
         skillManager = GetComponent<Player_SkillManager>();
         statusHandler = GetComponent<Entity_StatusHandler>();
         combat = GetComponent<Player_Combat>();
-        
+        inventory = GetComponent<Inventory_Player>();
+        stats = GetComponent<Player_Stats>();
+
         input = new PlayerInputSet();
+        ui.SetupControlsUI(input);
 
         // 初始化所有状态实例
         idleState = new Player_IdleState(this, stateMachine, "idle");
@@ -173,7 +179,31 @@ public class Player : Entity
         yield return new WaitForEndOfFrame();
         stateMachine.ChangeState(basicAttackState);
     }
+    private void TryInteract()
+    {
+        Transform closest = null;
+        float closestDistance = Mathf.Infinity;
+        Collider2D[] objectsAround = Physics2D.OverlapCircleAll(transform.position, 1f);
 
+        foreach (var target in objectsAround)
+        {
+            IInteractable interactable = target.GetComponent<IInteractable>();
+            if (interactable == null) continue;
+
+            float distance = Vector2.Distance(transform.position, target.transform.position);
+
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closest = target.transform;
+            }
+        }
+
+        if (closest == null)
+            return;
+
+        closest.GetComponent<IInteractable>().Interact();
+    }
     /// <summary>
     /// 启用输入并绑定移动输入事件
     /// </summary>
@@ -188,14 +218,15 @@ public class Player : Entity
 
         input.Player.Spell.performed += ctx => skillManager.timeEcho.TryUseSkill();
         input.Player.Spell.performed += ctx => skillManager.shard.TryUseSkill();
-   
-        input.Player.ToggleSkillTreeUI.performed += ctx => ui.ToggleSkillTreeUI();
-        input.Player.ToggleInventoryUI.performed += ctx => ui.ToggleInventoryUI();
+
+        input.Player.Interact.performed += ctx => TryInteract();
+
+        input.Player.QuickItemSlot_1.performed += ctx => inventory.TryUseQuickItemInSlot(1);
+        input.Player.QuickItemSlot_2.performed += ctx => inventory.TryUseQuickItemInSlot(2);
+
+        
     }
 
-    /// <summary>
-    /// 禁用输入
-    /// </summary>
     private void OnDisable()
     {
         input.Disable();

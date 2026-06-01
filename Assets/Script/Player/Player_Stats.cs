@@ -11,54 +11,47 @@ using UnityEngine;
 
 public class Player_Stats : Entity_Stats
 {
-    private List<string> activeBuff;          // 当前生效的Buff唯一标识列表
-    private Inventory_Player inventory;       // 玩家背包引用
+    private List<string> activeBuff = new List<string>();    // 正在生效的Buff来源标识
+    private Inventory_Player inventory;                      // 玩家背包
 
     protected override void Awake()
     {
         base.Awake();
-        activeBuff = new List<string>();
         inventory = GetComponent<Inventory_Player>();
     }
 
-    /// <summary>
-    /// 判断是否可施加指定Buff（防重复叠加）
-    /// </summary>
+    // 判断是否可以施加该来源的Buff（防止重复叠加）
     public bool CanApplyBuffOf(string source)
     {
         return !activeBuff.Contains(source);
     }
 
-    /// <summary>
-    /// 应用一组Buff效果（开启协程计时）
-    /// </summary>
-    public void ApplyBuff(BuffEffectData[] buffsToAply, float duration, string source)
+    // 施加一组Buff
+    public void ApplyBuff(BuffEffectData[] buffsToApply, float duration, string source)
     {
-        StartCoroutine(BuffCo(buffsToAply, duration, source));
+        StartCoroutine(BuffCo(buffsToApply, duration, source));
     }
 
-    /// <summary>
-    /// Buff持续协程：添加修饰 → 等待时长 → 移除修饰
-    /// </summary>
+    // Buff持续协程：计时结束后自动移除属性加成
     private IEnumerator BuffCo(BuffEffectData[] buffsToApply, float duration, string source)
     {
-        activeBuff.Add(source); // 标记Buff为激活
+        activeBuff.Add(source);
 
-        // 给对应属性添加加成
+        // 添加所有属性加成
         foreach (var buff in buffsToApply)
         {
             GetStatByType(buff.type).AddModifier(buff.value, source);
         }
 
-        yield return new WaitForSeconds(duration); // 等待持续时间结束
+        yield return new WaitForSeconds(duration);
 
-        // 移除属性加成
+        // 移除所有属性加成
         foreach (var buff in buffsToApply)
         {
             GetStatByType(buff.type).RemoveModifier(source);
         }
 
-        inventory.TriggerUpdateUI(); // 刷新UI显示
-        activeBuff.Remove(source);   // 取消Buff标记
+        inventory.TriggerUpdateUI();
+        activeBuff.Remove(source);
     }
 }

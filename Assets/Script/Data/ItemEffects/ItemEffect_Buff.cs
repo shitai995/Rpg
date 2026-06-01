@@ -28,19 +28,16 @@ public class ItemEffect_Buff : ItemEffect_DataSO
     [Tooltip("Buff唯一来源ID，防止重复施加")]
     [SerializeField] private string source = Guid.NewGuid().ToString();
 
-    private Player_Stats playerStats;
 
     /// <summary>
     /// 判断是否可使用该Buff效果（防重复施加）
     /// </summary>
-    public override bool CanBeUsed()
+    public override bool CanBeUsed(Player player)
     {
-        if (playerStats == null)
-            playerStats = FindFirstObjectByType<Player_Stats>();
-
         // 检查是否可施加该来源Buff
-        if (playerStats.CanApplyBuffOf(source))
+        if (player.stats.CanApplyBuffOf(source))
         {
+            this.player = player;
             return true;
         }
         else
@@ -55,6 +52,7 @@ public class ItemEffect_Buff : ItemEffect_DataSO
     /// </summary>
     public override void ExecuteEffect()
     {
-        playerStats.ApplyBuff(buffsToApply, duration, source);
+        player.stats.ApplyBuff(buffsToApply, duration, source);
+        player = null;
     }
 }

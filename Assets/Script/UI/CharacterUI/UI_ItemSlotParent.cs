@@ -2,7 +2,7 @@
 // 作者：娇娇 
 // 创建时间：2026-05-20 14:18:25
 // 版本：V1.1
-// 描述：
+// 描述：物品槽父容器（批量更新所有子物品槽显示）
 // ========================================================
 
 using System.Collections.Generic;
@@ -12,22 +12,18 @@ public class UI_ItemSlotParent : MonoBehaviour
 {
     private UI_ItemSlot[] slots;
 
-
+    // 批量更新所有物品槽UI
     public void UpdateSlots(List<Inventory_Item> itemList)
     {
-        if(slots == null)
+        if (slots == null)
             slots = GetComponentsInChildren<UI_ItemSlot>();
 
         for (int i = 0; i < slots.Length; i++)
         {
             if (i < itemList.Count)
-            {
                 slots[i].UpdateSlot(itemList[i]);
-            }
             else
-            {
                 slots[i].UpdateSlot(null);
-            }
         }
     }
 }

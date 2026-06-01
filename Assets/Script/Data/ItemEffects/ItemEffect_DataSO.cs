@@ -24,7 +24,7 @@ public class ItemEffect_DataSO : ScriptableObject
     /// <summary>
     /// 检查效果是否可执行
     /// </summary>
-    public virtual bool CanBeUsed()
+    public virtual bool CanBeUsed(Player player)
     {
         return true;
     }

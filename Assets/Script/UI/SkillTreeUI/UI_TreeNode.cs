@@ -35,21 +35,28 @@ public class UI_TreeNode : MonoBehaviour, IPointerEnterHandler,IPointerExitHandl
     private Color lastcolor;
 
 
-    private void Awake()
-    {
-        ui = GetComponentInParent<UI>();    
-        rect = GetComponent<RectTransform>();
-        skillTree = GetComponentInParent<UI_SkillTree>();
-        connectHandler = GetComponent<UI_TreeConnectHandler>();
-        // 初始化图标颜色为锁定状态
-        UpdateIconColor(GetColorByHex(lockedColorHex));
-    }
+    
 
     private void Start()
     {
+        if(isUnlocked == false)
+            UpdateIconColor(GetColorByHex(lockedColorHex));
+        UnlockDefaultSkill();
+    }
+    public void UnlockDefaultSkill()
+    {
+        GetNeededComponents();
+        // 初始化图标颜色为锁定状态
         // 若技能配置为默认解锁，则自动解锁
         if (skillData.unlockedByDefault)
             Unlock();
+    }
+    private void GetNeededComponents()
+    {
+        ui = GetComponentInParent<UI>();
+        rect = GetComponent<RectTransform>();
+        skillTree = GetComponentInParent<UI_SkillTree>(true);
+        connectHandler = GetComponent<UI_TreeConnectHandler>();
     }
     /// <summary>
     /// 技能退款：重置解锁/锁定状态，返还技能点，更新连接线
@@ -72,6 +79,12 @@ public class UI_TreeNode : MonoBehaviour, IPointerEnterHandler,IPointerExitHandl
     /// </summary>
     private void Unlock()
     {
+        if (isUnlocked)
+        {
+            Debug.Log("Skill is already unlocked!");
+            return;
+        }
+
         isUnlocked = true;
         UpdateIconColor(Color.white);
         LockConflictNodes();// 锁定所有冲突节点
@@ -79,7 +92,14 @@ public class UI_TreeNode : MonoBehaviour, IPointerEnterHandler,IPointerExitHandl
         skillTree.RemoveSkillPoints(skillData.cost);// 消耗技能点
         connectHandler.UnlockConnectionImage(true);// 更新连接线为已解锁状态
         // 同步解锁状态到玩家技能管理器
-        skillTree.skillManager.GetSkillByType(skillData.skillType).SetSkillUpgrade(skillData.upgradeData); 
+        skillTree.skillManager.GetSkillByType(skillData.skillType).SetSkillUpgrade(skillData); 
+    }
+    public void UnlockWithSaveData()
+    {
+        isUnlocked = true;
+        UpdateIconColor(Color.white);
+        LockConflictNodes();
+        connectHandler.UnlockConnectionImage(true);
     }
     /// <summary>
     /// 校验技能是否可解锁（核心条件判断）
@@ -148,7 +168,7 @@ public class UI_TreeNode : MonoBehaviour, IPointerEnterHandler,IPointerExitHandl
     // 鼠标悬浮到节点时触发
     public void OnPointerEnter(PointerEventData eventData)
     {
-        ui.skillToolTip.ShowToolTip(true, rect,this);
+        ui.skillToolTip.ShowToolTip(true, rect,skillData,this);
 
         if (isUnlocked || isLocked)
             return;
@@ -159,6 +179,7 @@ public class UI_TreeNode : MonoBehaviour, IPointerEnterHandler,IPointerExitHandl
     public void OnPointerExit(PointerEventData eventData)
     {
         ui.skillToolTip.ShowToolTip(false, rect);
+        ui.skillToolTip.StopLockedSkillEffect();
 
         if (isUnlocked || isLocked)
             return;

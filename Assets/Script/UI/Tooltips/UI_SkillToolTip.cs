@@ -47,7 +47,7 @@ public class UI_SkillToolTip : UI_ToolTip
     /// 技能专属显示逻辑（核心重载方法）
     /// 根据技能节点数据填充提示框内容，按条件着色
     /// </summary>
-    public void ShowToolTip(bool show,RectTransform targetRect,UI_TreeNode node)
+    public void ShowToolTip(bool show,RectTransform targetRect,SkillDataSO skillData,UI_TreeNode node)
     {
         // 调用父类方法，处理提示框的显示/隐藏和位置锚定
         base.ShowToolTip(show, targetRect);
@@ -56,9 +56,15 @@ public class UI_SkillToolTip : UI_ToolTip
             return;
 
         // 1. 设置技能名称和描述
-        skillName.text = node.skillData.displayName;
-        skillDescription.text = node.skillData.description;
-        skillCooldown.text = "Cooldown: " + node.skillData.upgradeData.cooldown + " s.";
+        skillName.text = skillData.displayName;
+        skillDescription.text =skillData.description;
+        skillCooldown.text = "Cooldown: " + skillData.upgradeData.cooldown + " s.";
+
+        if(node == null)
+        {
+            skillRequirements.text = "";
+            return;
+        }
         // 2. 处理锁定状态：锁定时显示锁定文本，否则显示解锁条件
         string skillLockedText = GetColoredText(importantInfoHex,lockedSkillText);
         string requirements = node.isLocked ? skillLockedText : GetRequirements(node.skillData.cost, node.neededNodes, node.conflictNodes);
@@ -71,10 +77,14 @@ public class UI_SkillToolTip : UI_ToolTip
     /// </summary>
     public void LockedSkillEffect()
     {
-        if(textEffectCo != null)
-            StopCoroutine(textEffectCo);
+        StopLockedSkillEffect();
 
         textEffectCo = StartCoroutine(TextBlinkEffectCo(skillRequirements,.15f,3));
+    }
+    public void StopLockedSkillEffect()
+    {
+        if (textEffectCo != null)
+            StopCoroutine(textEffectCo);
     }
     /// <summary>
     /// 文本闪烁特效协程

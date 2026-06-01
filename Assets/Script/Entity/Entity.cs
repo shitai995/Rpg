@@ -19,7 +19,6 @@ public class Entity : MonoBehaviour
     #region 组件与核心对象（外部只读，内部赋值）
     public Animator anim { get; private set; } // 动画组件
     public Rigidbody2D rb { get; private set; } // 2D刚体组件
-    public Entity_Stats stats { get; private set; }
     protected StateMachine stateMachine; // 状态机管理器
     #endregion
     private bool facingRight = true; // 是否面朝右
@@ -49,7 +48,6 @@ public class Entity : MonoBehaviour
         // 获取核心组件
         anim = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody2D>();
-        stats = GetComponent<Entity_Stats>();
         stateMachine = new StateMachine();
         
     }

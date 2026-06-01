@@ -10,89 +10,89 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+/// <summary>
+/// 物品槽基础组件，负责显示物品、处理点击、悬浮提示
+/// </summary>
 public class UI_ItemSlot : MonoBehaviour, IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    public Inventory_Item itemInSlot { get; private set; }  // 当前槽位内的物品
-    protected Inventory_Player inventory;                   // 玩家背包引用
-    protected UI ui;                                        // 总UI管理器
-    protected RectTransform rect;                           // 自身矩形变换（用于提示框定位）
+    public Inventory_Item itemInSlot { get; private set; }
+    protected Inventory_Player inventory;
+    protected UI ui;
+    protected RectTransform rect;
 
-    [Header("物品槽UI设置")]
-    [SerializeField] private Image itemIcon;               // 物品图标
-    [SerializeField] private TextMeshProUGUI itemStackSize;// 堆叠数量文本
+    [Header("UI Slot Setup")]
+    [SerializeField] protected GameObject defaultIcon;
+    [SerializeField] protected Image itemIcon;
+    [SerializeField] protected TextMeshProUGUI itemStackSize;
 
-    protected void Awake()
+    protected virtual void Awake()
     {
         ui = GetComponentInParent<UI>();
         rect = GetComponent<RectTransform>();
         inventory = FindAnyObjectByType<Inventory_Player>();
     }
 
-    /// <summary>
-    /// 点击物品槽：根据物品类型执行使用/装备逻辑
-    /// </summary>
+    /// <summary> 点击物品槽：使用/装备/删除物品 </summary>
     public virtual void OnPointerDown(PointerEventData eventData)
     {
-        // 无物品 / 材料类型  不处理
         if (itemInSlot == null || itemInSlot.itemData.itemType == ItemType.Material)
             return;
 
-        // 消耗品  使用
-        if (itemInSlot.itemData.itemType == ItemType.Consumable)
-        {
-            if (itemInSlot.itemEffect.CanBeUsed() == false)
-                return;
+        bool alternativeInput = Input.GetKey(KeyCode.LeftControl);
 
-            inventory.TryUseItem(itemInSlot);
+        // Ctrl + 左键 → 删除物品
+        if (alternativeInput)
+        {
+            inventory.RemoveOneItem(itemInSlot);
         }
-        // 装备  穿戴
         else
         {
-            inventory.TryEquipItem(itemInSlot);
+            // 消耗品 → 使用
+            if (itemInSlot.itemData.itemType == ItemType.Consumable)
+            {
+
+
+                inventory.TryUseItem(itemInSlot);
+            }
+            // 装备 → 穿戴
+            else
+                inventory.TryEquipItem(itemInSlot);
         }
 
-        // 使用后物品为空  关闭提示框
         if (itemInSlot == null)
             ui.itemToolTip.ShowToolTip(false, null);
     }
 
-    /// <summary>
-    /// 更新槽位UI显示（图标、堆叠数、清空状态）
-    /// </summary>
+    /// <summary> 更新槽位显示内容 </summary>
     public void UpdateSlot(Inventory_Item item)
     {
         itemInSlot = item;
 
-        // 无物品  清空显示
+        if (defaultIcon != null)
+            defaultIcon.gameObject.SetActive(itemInSlot == null);
+
         if (itemInSlot == null)
         {
             itemStackSize.text = "";
             itemIcon.color = Color.clear;
+      
             return;
         }
-
-        // 有物品  显示图标与堆叠
-        Color color = Color.white;
-        color.a = .9f;
+       
+        Color color = Color.white; color.a = .9f;
         itemIcon.color = color;
         itemIcon.sprite = itemInSlot.itemData.itemIcon;
         itemStackSize.text = item.stackSize > 1 ? item.stackSize.ToString() : "";
     }
 
-    /// <summary>
-    /// 鼠标进入  显示物品提示框
-    /// </summary>
+    /// <summary> 鼠标进入 → 显示提示 </summary>
     public virtual void OnPointerEnter(PointerEventData eventData)
     {
-        if (itemInSlot == null)
-            return;
-
+        if (itemInSlot == null) return;
         ui.itemToolTip.ShowToolTip(true, rect, itemInSlot);
     }
 
-    /// <summary>
-    /// 鼠标离开  关闭物品提示框
-    /// </summary>
+    /// <summary> 鼠标离开 → 关闭提示 </summary>
     public void OnPointerExit(PointerEventData eventData)
     {
         ui.itemToolTip.ShowToolTip(false, null);

@@ -15,14 +15,11 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     private RectTransform rect;
     private UI ui;
 
-    [Header("属性配置")]
     [SerializeField] private StatType statSlotType;
-
-    [Header("UI显示")]
     [SerializeField] private TextMeshProUGUI statName;
     [SerializeField] private TextMeshProUGUI statValue;
 
-    // 编辑器自动重命名与设置标题
+    // 编辑器验证：自动命名与显示属性名
     private void OnValidate()
     {
         gameObject.name = "UI_Stat - " + GetStatNameByType(statSlotType);
@@ -36,21 +33,18 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         playerStats = FindFirstObjectByType<Player_Stats>();
     }
 
-    // 鼠标悬浮：显示属性提示
+    // 鼠标悬浮显示属性说明
     public void OnPointerEnter(PointerEventData eventData)
     {
         ui.statToolTip.ShowToolTip(true, rect, statSlotType);
     }
 
-    // 鼠标离开：关闭提示
     public void OnPointerExit(PointerEventData eventData)
     {
         ui.statToolTip.ShowToolTip(false, null);
     }
 
-    /// <summary>
-    /// 更新当前属性槽的数值显示
-    /// </summary>
+    // 更新属性数值显示
     public void UpdateStatValue()
     {
         Stat statToUpdate = playerStats.GetStatByType(statSlotType);
@@ -65,7 +59,7 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
         switch (statSlotType)
         {
-            // 核心主属性
+            // 主属性
             case StatType.Strength:
                 value = playerStats.major.strength.GetValue();
                 break;
@@ -136,13 +130,10 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
                 break;
         }
 
-        // 判断是否显示百分比
         statValue.text = IsPercentageStat(statSlotType) ? value + "%" : value.ToString();
     }
 
-    /// <summary>
-    /// 判断属性是否为百分比类型
-    /// </summary>
+    // 判断是否为百分比属性
     private bool IsPercentageStat(StatType type)
     {
         switch (type)
@@ -161,9 +152,7 @@ public class UI_StatSlot : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         }
     }
 
-    /// <summary>
-    /// 将属性枚举转为UI显示名称
-    /// </summary>
+    // 根据类型获取属性名称
     private string GetStatNameByType(StatType type)
     {
         switch (type)

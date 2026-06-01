@@ -13,6 +13,8 @@ using UnityEngine.Rendering;
 
 public class Enemy : Entity
 {
+    public Entity_Stats stats { get; private set; }
+
     public Enemy_Health health { get; private set; }
     public Enemy_IdleState idleState;
     public Enemy_MoveState moveState;
@@ -54,6 +56,8 @@ public class Enemy : Entity
     {
         base.Awake();
         health = GetComponent<Enemy_Health>();
+        stats = GetComponent<Entity_Stats>();
+
     }
     /// <summary>
     /// 减缓移动速度
