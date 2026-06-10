@@ -24,10 +24,6 @@ public class Object_Merchant : Object_NPC, IInteractable
     protected override void Update()
     {
         base.Update();
-
-        // 测试：按 Z 键刷新商店物品
-        if (Input.GetKeyDown(KeyCode.Z))
-            merchant.FillShopList();
     }
 
     /// <summary>

@@ -48,17 +48,17 @@ public class Inventory_Storage : Inventory_Base
         int amountNeeded = neededItem.stackSize;
         int consumedAmount = 0;
 
-        foreach (var item in itemList)
+        for (int i = itemList.Count - 1; i >= 0; i--)
         {
-            if (item.itemData != neededItem.itemData)
+            if (itemList[i].itemData != neededItem.itemData)
                 continue;
 
-            int removeAmount = Mathf.Min(item.stackSize, amountNeeded - consumedAmount);
-            item.stackSize -= removeAmount;
+            int removeAmount = Mathf.Min(itemList[i].stackSize, amountNeeded - consumedAmount);
+            itemList[i].stackSize -= removeAmount;
             consumedAmount += removeAmount;
 
-            if (item.stackSize <= 0)
-                itemList.Remove(item);
+            if (itemList[i].stackSize <= 0)
+                itemList.RemoveAt(i);
 
             if (consumedAmount >= amountNeeded)
                 break;

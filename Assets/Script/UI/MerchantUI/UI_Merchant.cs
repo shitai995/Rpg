@@ -24,6 +24,10 @@ public class UI_Merchant : MonoBehaviour
     // 初始化商店UI，绑定数据
     public void SetupMerchantUI(Inventory_Merchant merchant, Inventory_Player inventory)
     {
+        // 先取消旧订阅，防止重复注册
+        if (this.inventory != null) this.inventory.OnInventoryChange -= UpdateSlotUI;
+        if (this.merchant != null) this.merchant.OnInventoryChange -= UpdateSlotUI;
+
         this.merchant = merchant;
         this.inventory = inventory;
 
@@ -46,7 +50,7 @@ public class UI_Merchant : MonoBehaviour
         merchantSlots.UpdateSlots(merchant.itemList);
         inventorySlots.UpdateSlots(inventory.itemList);
         equipSlots.UpdateEquipmentSlots(inventory.equipList);
-        goldText.text = inventory.gold.ToString("NO") + "g.";
+        goldText.text = inventory.gold.ToString("N0") + "g.";
 
     }
 }

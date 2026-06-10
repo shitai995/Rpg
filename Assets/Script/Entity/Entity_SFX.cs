@@ -31,7 +31,7 @@ public class Entity_SFX : MonoBehaviour
     /// </summary>
     public void PlayAttackHit()
     {
-        //AudioManager.instance.PlaySFX(attackHit, audioSource, soundDistance);
+        AudioManager.instance.PlaySFX(attackHit, audioSource, soundDistance);
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ public class Entity_SFX : MonoBehaviour
     /// </summary>
     public void PlayAttackMiss()
     {
-        //AudioManager.instance.PlaySFX(attackMiss, audioSource, soundDistance);
+        AudioManager.instance.PlaySFX(attackMiss, audioSource, soundDistance);
     }
 
     /// <summary>

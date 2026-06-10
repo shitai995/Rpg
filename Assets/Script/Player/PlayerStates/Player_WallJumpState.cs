@@ -8,7 +8,7 @@
 
 using UnityEngine;
 
-public class Player_WallJumpState : PlayerState
+public class Player_WallJumpState : Player_AiredState
 {
     public Player_WallJumpState(Player player, StateMachine stateMachine, string animBoolName) : base(player, stateMachine, animBoolName)
     {
@@ -19,6 +19,8 @@ public class Player_WallJumpState : PlayerState
         base.Enter(); // 激活跳跃动画、重置触发标记
         // 施加墙跳力：水平方向=墙跳力×反面向（远离墙壁），竖直方向=墙跳力Y（向上）
         player.SetVelocity(player.wallJumpForce.x * -player.facingDir, player.wallJumpForce.y);
+        // 记录蹬墙跳时间，用于冷却期间忽略墙壁检测
+        player.lastWallJumpTime = Time.time;
     }
 
     public override void Update()
@@ -29,8 +31,8 @@ public class Player_WallJumpState : PlayerState
         if (rb.linearVelocity.y < 0)
             stateMachine.ChangeState(player.fallState);
 
-        // 二次贴墙检测：跳跃过程中再次碰到墙壁→切换回滑墙状态（支持连续墙跳）
-        if (player.wallDetected)
+        // 二次贴墙检测：冷却时间过后才检测墙壁，避免刚蹬墙跳就被打断
+        if (Time.time - player.lastWallJumpTime > player.wallJumpWallDetectDelay && player.wallDetected)
             stateMachine.ChangeState(player.wallSlideState);
     }
 }

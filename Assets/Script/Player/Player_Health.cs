@@ -20,13 +20,6 @@ public class Player_Health : Entity_Health
         player = GetComponent<Player>();
     }
 
-    private void Update()
-    {
-        // 按N键测试死亡
-        if (Input.GetKeyDown(KeyCode.N))
-            Die();
-    }
-
     /// <summary>
     /// 玩家死亡处理
     /// </summary>
@@ -35,8 +28,8 @@ public class Player_Health : Entity_Health
         base.Die();
 
         // 打开死亡界面、记录位置并重启场景
-        // player.ui.OpenDeathScreenUI();
-        // GameManager.instance.SetLastPlayerPosition(transform.position);
-        // GameManager.instance.RestartScene();
+         player.ui.OpenDeathScreenUI();
+         //GameManager.instance.SetLastPlayerPosition(transform.position);
+         //GameManager.instance.RestartScene();
     }
 }

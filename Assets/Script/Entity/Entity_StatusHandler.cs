@@ -22,6 +22,8 @@ public class Entity_StatusHandler : MonoBehaviour
     [SerializeField] private float currentCharge;// 当前雷电充能值（累加至最大值触发雷击）
     [SerializeField] private float maximumCharge = 1;// 雷电充能最大值（达到该值触发雷击）
     private Coroutine shockCo;// 雷电状态协程引用
+    private Coroutine burnCo;// 火焰状态协程引用
+    private Coroutine chillCo;// 冰霜状态协程引用
     private void Awake()
     {
         entity = GetComponent<Entity>();
@@ -32,7 +34,10 @@ public class Entity_StatusHandler : MonoBehaviour
 
     public void RemoveAllNegativeEffects()
     {
-        StopAllCoroutines();
+        if (shockCo != null) StopCoroutine(shockCo);
+        if (burnCo != null) StopCoroutine(burnCo);
+        if (chillCo != null) StopCoroutine(chillCo);
+        shockCo = null; burnCo = null; chillCo = null;
         currentEffect = ElementType.None;
         entityVfx.StopAllVfx();
     }
@@ -102,7 +107,7 @@ public class Entity_StatusHandler : MonoBehaviour
         float fireResistance = entityStats.GetElementalResistance(ElementType.Fire);
         float finalDamage = fireDamage * (1 - fireResistance);
 
-        StartCoroutine(BurnEffectCo(duration, finalDamage));
+        burnCo = StartCoroutine(BurnEffectCo(duration, finalDamage));
     }
     /// <summary>
     /// 火焰灼烧效果
@@ -122,6 +127,7 @@ public class Entity_StatusHandler : MonoBehaviour
         // 循环触发灼烧伤害
         for (int i = 0; i < tickCount; i++)
         {
+            if (entityHealth.isDead) break;
             entityHealth.ReduceHealth(damagePerTick);
             yield return new WaitForSeconds(tickInterval);
         }
@@ -136,7 +142,7 @@ public class Entity_StatusHandler : MonoBehaviour
         float iceResistance = entityStats.GetElementalResistance(ElementType.Ice);
         float finalDuration = duration * (1 - iceResistance);
 
-        StartCoroutine(ChillEffectCo(finalDuration, slowMultiplier));
+        chillCo = StartCoroutine(ChillEffectCo(finalDuration, slowMultiplier));
     }
     /// <summary>
     /// 冰霜减速效果协程

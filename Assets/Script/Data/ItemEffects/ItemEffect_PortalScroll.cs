@@ -27,10 +27,10 @@ public class ItemEffect_PortalScroll : ItemEffect_DataSO
         }
 
         // 计算传送门生成位置
-        // Player player = Player.instance;
+         Player player = Player.instance;
         Vector3 portalPosition = player.transform.position + new Vector3(player.facingDir * 1.5f, 0);
 
         // 激活传送门
-        // Object_Portal.instnace.ActivatePortal(portalPosition, player.facingDir);
+         Object_Portal.instnace.ActivatePortal(portalPosition, player.facingDir);
     }
 }

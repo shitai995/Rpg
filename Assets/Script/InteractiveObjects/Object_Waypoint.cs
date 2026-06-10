@@ -6,7 +6,6 @@
 // ========================================================
 
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 场景传送路点
@@ -56,7 +55,7 @@ public class Object_Waypoint : MonoBehaviour
         if (!canBeTriggered)
             return;
 
-        // GameManager.instance.ChangeScene(transferToScene, conntedWaypoint);
+        GameManager.instance.ChangeScene(transferToScene, conntedWaypoint);
     }
 
     /// <summary>

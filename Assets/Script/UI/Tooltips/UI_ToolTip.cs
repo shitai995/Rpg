@@ -24,6 +24,9 @@ public class UI_ToolTip : MonoBehaviour
     /// </summary>
     public virtual void ShowToolTip(bool show,RectTransform targetRect)
     {
+        // 场景销毁时 UI 对象可能已被销毁，避免 MissingReferenceException
+        if (rect == null) return;
+
         if(show == false)
         {
             rect.position = new Vector2(9999, 9999);

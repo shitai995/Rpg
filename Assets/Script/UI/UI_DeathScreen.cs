@@ -17,7 +17,7 @@ public class UI_DeathScreen : MonoBehaviour
     /// </summary>
     public void GoToCampBTN()
     {
-        // GameManager.instance.ChangeScene("Level_0", RespawnType.NonSpecific);
+         GameManager.instance.ChangeScene("Level_0", RespawnType.NonSpecific);
     }
 
     /// <summary>
@@ -25,7 +25,7 @@ public class UI_DeathScreen : MonoBehaviour
     /// </summary>
     public void GoToCheckpointBTN()
     {
-        // GameManager.instance.RestartScene();
+         GameManager.instance.RestartScene();
     }
 
     /// <summary>
@@ -33,6 +33,6 @@ public class UI_DeathScreen : MonoBehaviour
     /// </summary>
     public void GoToMainMenuBTN()
     {
-        // GameManager.instance.ChangeScene("MainMenu", RespawnType.NonSpecific);
+         GameManager.instance.ChangeScene("MainMenu", RespawnType.NonSpecific);
     }
 }

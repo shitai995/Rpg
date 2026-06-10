@@ -165,6 +165,8 @@ public class Inventory_Player : Inventory_Base
 
             var slot = equipList.Find(slot => slot.slotType == equipemntSlotType && slot.HasItem() == false);
 
+            if (slot == null) continue;
+
             slot.equipedItem = itemToLoad;
             slot.equipedItem.AddModifiers(player.stats);
             slot.equipedItem.AddItemEffect(player);

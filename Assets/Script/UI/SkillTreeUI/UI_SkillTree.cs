@@ -42,7 +42,9 @@ public class UI_SkillTree : MonoBehaviour, ISaveable
     /// </summary>
     public void UnlockDefaultSkills()
     {
-        allTreeNodes = GetComponentsInChildren<UI_TreeNode>(true);
+        if (allTreeNodes == null)
+            allTreeNodes = GetComponentsInChildren<UI_TreeNode>(true);
+
         skillManager = FindAnyObjectByType<Player_SkillManager>();
 
         foreach (var node in allTreeNodes)
@@ -98,6 +100,10 @@ public class UI_SkillTree : MonoBehaviour, ISaveable
     /// </summary>
     public void LoadData(GameData data)
     {
+        // GameObject 未激活时 Awake 不会执行，需要就地初始化
+        if (allTreeNodes == null)
+            allTreeNodes = GetComponentsInChildren<UI_TreeNode>(true);
+
         skillPoints = data.skillPoints;
 
         // 恢复技能节点解锁状态
@@ -109,6 +115,7 @@ public class UI_SkillTree : MonoBehaviour, ISaveable
         }
 
         // 恢复技能进阶形态
+        if (skillManager == null) return;
         foreach (var skill in skillManager.allSkills)
         {
             if (data.skillUpgrades.TryGetValue(skill.GetSkillType(), out SkillUpgradeType upgradeType))
@@ -124,6 +131,9 @@ public class UI_SkillTree : MonoBehaviour, ISaveable
     /// </summary>
     public void SaveData(ref GameData data)
     {
+        if (allTreeNodes == null)
+            allTreeNodes = GetComponentsInChildren<UI_TreeNode>(true);
+
         data.skillPoints = skillPoints;
         data.skillTreeUI.Clear();
         data.skillUpgrades.Clear();
@@ -136,6 +146,7 @@ public class UI_SkillTree : MonoBehaviour, ISaveable
         }
 
         // 记录所有技能进阶形态
+        if (skillManager == null) return;
         foreach (var skill in skillManager.allSkills)
         {
             data.skillUpgrades[skill.GetSkillType()] = skill.GetUpgrade();

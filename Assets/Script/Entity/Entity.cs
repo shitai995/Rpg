@@ -20,6 +20,7 @@ public class Entity : MonoBehaviour
     #region 核心组件
     public Animator anim { get; private set; }
     public Rigidbody2D rb { get; private set; }
+    public Entity_SFX sfx {  get; private set; }
     protected StateMachine stateMachine;
     #endregion
 
@@ -48,6 +49,7 @@ public class Entity : MonoBehaviour
     {
         anim = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        sfx = GetComponent<Entity_SFX>();
         stateMachine = new StateMachine();
     }
 

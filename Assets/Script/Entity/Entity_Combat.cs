@@ -12,7 +12,7 @@ public class Entity_Combat : MonoBehaviour
 {
     // 造成物理伤害时触发事件（用于吸血等被动效果）
     public event Action<float> OnDoingPhysicalDamage;
-
+    private Entity_SFX sfx;
     private Entity_VFX vfx;
     private Entity_Stats stats;
 
@@ -27,6 +27,7 @@ public class Entity_Combat : MonoBehaviour
     private void Awake()
     {
         vfx = GetComponent<Entity_VFX>();   
+        sfx = GetComponent<Entity_SFX>();
         stats = GetComponent<Entity_Stats>();
     }
     /// <summary>
@@ -35,6 +36,7 @@ public class Entity_Combat : MonoBehaviour
     /// </summary>
     public void PerformAttack()
     {
+        bool targetGotHit = false;
         // 1. 获取检测范围内所有符合条件的碰撞体
         foreach (var target in GetDetectedColliders())
         {
@@ -51,17 +53,20 @@ public class Entity_Combat : MonoBehaviour
             float elementalDamage = attackData.elementalDamage;
             ElementType element = attackData.element;
             // 造成伤害
-            bool targetGotHit = damegable.TakeDamage(physicalDamage, elementalDamage, element, transform);
+            targetGotHit = damegable.TakeDamage(physicalDamage, elementalDamage, element, transform);
             // 施加元素效果
             if (element != ElementType.None)
-                target.GetComponent<Entity_StatusHandler>().ApplyStatusEffect(element, attackData.effectData);
+                statusHandler?.ApplyStatusEffect(element, attackData.effectData);
             // 5. 目标成功受击时，更新特效颜色+生成受击特效
             if (targetGotHit)
             {
                 OnDoingPhysicalDamage?.Invoke(physicalDamage);
-            }
                 vfx.CreateOnHitVFX(target.transform, attackData.isCrit, element);
+                sfx?.PlayAttackHit();
+            }
         }
+        if (targetGotHit == false)
+            sfx?.PlayAttackMiss();
     }
     /// <summary>
     /// 检测指定范围内的目标（2D圆形范围）

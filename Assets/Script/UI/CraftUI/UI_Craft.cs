@@ -19,6 +19,9 @@ public class UI_Craft : MonoBehaviour
     // 初始化合成界面，绑定储物栏数据
     public void SetupCraftUI(Inventory_Storage storage)
     {
+        // 先取消旧订阅，防止重复注册
+        if (inventory != null) inventory.OnInventoryChange -= UpdateUI;
+
         inventory = storage.playerInventory;
         inventory.OnInventoryChange += UpdateUI;
         UpdateUI();

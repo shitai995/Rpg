@@ -25,6 +25,9 @@ public class Player_JumpState : Player_AiredState
     {
         base.Update(); // 继承父类：空中移动、空中攻击输入检测
 
+        if (rb.linearVelocity.y > 0 && input.Player.Jump.WasReleasedThisFrame())
+            player.SetVelocity(rb.linearVelocity.x, rb.linearVelocity.y * player.jumpCutMultiplier);
+
         // 跳跃顶点检测：竖直速度≤0（上升结束开始下坠），且未处于空中攻击状态→切换到下落状态
         if (rb.linearVelocity.y < 0 && stateMachine.currentState != player.jumpAttackState)
             stateMachine.ChangeState(player.fallState);

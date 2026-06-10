@@ -21,13 +21,6 @@ public class Entity_DropManager : MonoBehaviour
     [SerializeField] private int maxRarityAmount = 1200; // 稀有度总值上限
     [SerializeField] private int maxItemsToDrop = 3;      // 最大掉落物品数量
 
-    private void Update()
-    {
-        // 按X键测试掉落
-        if (Input.GetKeyDown(KeyCode.X))
-            DropItems();
-    }
-
     /// <summary>
     /// 执行物品掉落逻辑
     /// </summary>

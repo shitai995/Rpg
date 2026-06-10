@@ -6,7 +6,6 @@
 // ========================================================
 
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 /// <summary>
@@ -36,17 +35,17 @@ public class ItemListDataSO : ScriptableObject
     public void CollectItemsData()
     {
         // 查找所有ItemDataSO资源
-        string[] guids = AssetDatabase.FindAssets("t:ItemDataSO");
+        string[] guids = UnityEditor.AssetDatabase.FindAssets("t:ItemDataSO");
 
         // 加载并赋值到列表
         itemList = guids
-            .Select(guid => AssetDatabase.LoadAssetAtPath<ItemDataSO>(AssetDatabase.GUIDToAssetPath(guid)))
+            .Select(guid => UnityEditor.AssetDatabase.LoadAssetAtPath<ItemDataSO>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid)))
             .Where(item => item != null)
             .ToArray();
 
         // 标记变更并保存
-        EditorUtility.SetDirty(this);
-        AssetDatabase.SaveAssets();
+        UnityEditor.EditorUtility.SetDirty(this);
+        UnityEditor.AssetDatabase.SaveAssets();
     }
 #endif
 }

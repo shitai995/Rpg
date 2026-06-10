@@ -19,7 +19,7 @@ public class UI_MainMenu : MonoBehaviour
         // 执行画面淡入
         transform.root.GetComponentInChildren<UI_FadeScreen>().DoFadeIn();
         // 播放主菜单背景音乐
-        //AudioManager.instance.StartBGM("playlist_mainMenu");
+        AudioManager.instance.StartBGM("playlist_mainMenu");
     }
 
     /// <summary>
@@ -27,8 +27,8 @@ public class UI_MainMenu : MonoBehaviour
     /// </summary>
     public void PlayBTN()
     {
-        //AudioManager.instance.PlayGlobalSFX("button_click");
-        // GameManager.instance.ContinuePlay();
+        AudioManager.instance.PlayGlobalSFX("button_click");
+        GameManager.instance.ContinuePlay();
     }
 
     /// <summary>

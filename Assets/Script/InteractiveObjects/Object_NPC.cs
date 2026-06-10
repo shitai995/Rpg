@@ -70,6 +70,7 @@ public class Object_NPC : MonoBehaviour
     // 玩家进入范围 → 显示交互提示
     protected virtual void OnTriggerEnter2D(Collider2D collision)
     {
+        if (!collision.CompareTag("Player")) return;
         player = collision.transform;
         interactToolTip.SetActive(true);
     }
@@ -77,6 +78,7 @@ public class Object_NPC : MonoBehaviour
     // 玩家离开范围 → 隐藏提示
     protected virtual void OnTriggerExit2D(Collider2D collision)
     {
+        if (!collision.CompareTag("Player")) return;
         interactToolTip.SetActive(false);
         player = null;
     }

@@ -8,6 +8,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// 玩家控制器：统一管理输入、状态机、刚体和动画，协调各模块交互
@@ -47,6 +48,14 @@ public class Player : Entity
     [Header("攻击相关配置")]
     public Vector2[] attackVelocity; // 攻击时移动速度数组（对应多段攻击）
     public Vector2 jumpAttackVelocity; // 跳跃攻击移动速度
+    public float jumpCutMultiplier = .4f;// 松手后保留多少上升速度
+    [Header("跳跃手感优化")]
+    public float coyoteTime = 0.12f; // 离开平台后仍可跳跃的容错时间
+    public float jumpBufferTime = 0.1f; // 落地前按跳跃键的缓冲时间
+    public float wallJumpWallDetectDelay = 0.2f; // 蹬墙跳后忽略墙壁检测的时长
+    [HideInInspector] public float lastGroundedTime; // 最后一次在地面的时间
+    [HideInInspector] public float lastJumpPressTime; // 最后一次按跳跃键的时间
+    [HideInInspector] public float lastWallJumpTime; // 最后一次蹬墙跳的时间
     public float attackVelocityDuration = .1f; // 攻击速度持续时间
     public float comboResetTime = 1; // 连招重置时间
     public Coroutine queuedAttackCo; // 延迟攻击协程引用
@@ -69,6 +78,16 @@ public class Player : Entity
     public float dashSpeed = 20; // 冲刺速度
     public Vector2 moveInput { get; private set; } // 移动输入值
     public Vector2 mousePosition {  get; private set; }// 鼠标位置
+
+    // 输入回调委托（用于 OnEnable/OnDisable 订阅和取消订阅）
+    private System.Action<InputAction.CallbackContext> onMousePerformed;
+    private System.Action<InputAction.CallbackContext> onMovementPerformed;
+    private System.Action<InputAction.CallbackContext> onMovementCanceled;
+    private System.Action<InputAction.CallbackContext> onSpellPerformed1;
+    private System.Action<InputAction.CallbackContext> onSpellPerformed2;
+    private System.Action<InputAction.CallbackContext> onInteractPerformed;
+    private System.Action<InputAction.CallbackContext> onQuickSlot1Performed;
+    private System.Action<InputAction.CallbackContext> onQuickSlot2Performed;
     #endregion
 
     protected override void Awake()
@@ -126,7 +145,7 @@ public class Player : Entity
         float originalAnimSpeed = anim.speed;
         Vector2 originalWallJump = wallJumpForce;
         Vector2 originalJumpAttack = jumpAttackVelocity;
-        Vector2[] originalAttackVelocity = attackVelocity;
+        Vector2[] originalAttackVelocity = (Vector2[])attackVelocity.Clone();
         // 计算实际减速倍率（1 - 传入的减速比例）
         float speedMultiplier = 1 - slowMultiplier;
 
@@ -211,26 +230,36 @@ public class Player : Entity
     {
         input.Enable();
 
-        input.Player.Mouse.performed += ctx => mousePosition = ctx.ReadValue<Vector2>();
+        onMousePerformed = ctx => mousePosition = ctx.ReadValue<Vector2>();
+        onMovementPerformed = ctx => moveInput = ctx.ReadValue<Vector2>();
+        onMovementCanceled = ctx => moveInput = Vector2.zero;
+        onSpellPerformed1 = ctx => skillManager.timeEcho.TryUseSkill();
+        onSpellPerformed2 = ctx => skillManager.shard.TryUseSkill();
+        onInteractPerformed = ctx => TryInteract();
+        onQuickSlot1Performed = ctx => inventory.TryUseQuickItemInSlot(1);
+        onQuickSlot2Performed = ctx => inventory.TryUseQuickItemInSlot(2);
 
-        input.Player.Movement.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        input.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
-
-        input.Player.Spell.performed += ctx => skillManager.timeEcho.TryUseSkill();
-        input.Player.Spell.performed += ctx => skillManager.shard.TryUseSkill();
-
-        input.Player.Interact.performed += ctx => TryInteract();
-
-        input.Player.QuickItemSlot_1.performed += ctx => inventory.TryUseQuickItemInSlot(1);
-        input.Player.QuickItemSlot_2.performed += ctx => inventory.TryUseQuickItemInSlot(2);
-
-        
+        input.Player.Mouse.performed += onMousePerformed;
+        input.Player.Movement.performed += onMovementPerformed;
+        input.Player.Movement.canceled += onMovementCanceled;
+        input.Player.Spell.performed += onSpellPerformed1;
+        input.Player.Spell.performed += onSpellPerformed2;
+        input.Player.Interact.performed += onInteractPerformed;
+        input.Player.QuickItemSlot_1.performed += onQuickSlot1Performed;
+        input.Player.QuickItemSlot_2.performed += onQuickSlot2Performed;
     }
 
     private void OnDisable()
     {
+        input.Player.Mouse.performed -= onMousePerformed;
+        input.Player.Movement.performed -= onMovementPerformed;
+        input.Player.Movement.canceled -= onMovementCanceled;
+        input.Player.Spell.performed -= onSpellPerformed1;
+        input.Player.Spell.performed -= onSpellPerformed2;
+        input.Player.Interact.performed -= onInteractPerformed;
+        input.Player.QuickItemSlot_1.performed -= onQuickSlot1Performed;
+        input.Player.QuickItemSlot_2.performed -= onQuickSlot2Performed;
+
         input.Disable();
     }
-
-    
 }

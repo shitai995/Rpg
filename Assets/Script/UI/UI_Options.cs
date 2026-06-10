@@ -63,20 +63,20 @@ public class UI_Options : MonoBehaviour
     }
 
     // 切换回主菜单
-    // public void GoMainMenuBTN() => GameManager.instance.ChangeScene("MainMenu", RespawnType.NonSpecific);
+     public void GoMainMenuBTN() => GameManager.instance.ChangeScene("MainMenu", RespawnType.NonSpecific);
 
     private void OnEnable()
     {
         // 启用面板时读取本地音量配置
-        // sfxSlider.value = PlayerPrefs.GetFloat(sfxParametr, 0.6f);
-        // bgmSlider.value = PlayerPrefs.GetFloat(bgmParametr, 0.6f);
+         sfxSlider.value = PlayerPrefs.GetFloat(sfxParametr, 0.6f);
+         bgmSlider.value = PlayerPrefs.GetFloat(bgmParametr, 0.6f);
     }
 
     private void OnDisable()
     {
         // 关闭面板时保存音量配置
-        // PlayerPrefs.SetFloat(sfxParametr, sfxSlider.value);
-        // PlayerPrefs.SetFloat(bgmParametr, bgmSlider.value);
+         PlayerPrefs.SetFloat(sfxParametr, sfxSlider.value);
+         PlayerPrefs.SetFloat(bgmParametr, bgmSlider.value);
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class UI_Options : MonoBehaviour
     /// </summary>
     public void LoadUpVolume()
     {
-        // sfxSlider.value = PlayerPrefs.GetFloat(sfxParametr, 0.6f);
-        // bgmSlider.value = PlayerPrefs.GetFloat(bgmParametr, 0.6f);
+         sfxSlider.value = PlayerPrefs.GetFloat(sfxParametr, 0.6f);
+         bgmSlider.value = PlayerPrefs.GetFloat(bgmParametr, 0.6f);
     }
 }

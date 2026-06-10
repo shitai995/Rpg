@@ -62,7 +62,7 @@ public class UI_FadeScreen : MonoBehaviour
 
         while (time < duration)
         {
-            time += Time.deltaTime;
+            time += Time.unscaledDeltaTime;
             Color color = fadeImage.color;
             color.a = Mathf.Lerp(startAlpha, targetAlpha, time / duration);
             fadeImage.color = color;

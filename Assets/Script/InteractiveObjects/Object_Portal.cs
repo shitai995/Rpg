@@ -66,7 +66,7 @@ public class Object_Portal : MonoBehaviour, ISaveable
     private void UseTeleport()
     {
         string destinationScene = InTown() ? returnSceneName : townSceneName;
-        //GameManager.instance.ChangeScene(destinationScene, RespawnType.Portal);
+        GameManager.instance.ChangeScene(destinationScene, RespawnType.Portal);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -98,6 +98,10 @@ public class Object_Portal : MonoBehaviour, ISaveable
     /// </summary>
     public void LoadData(GameData data)
     {
+        // GameObject 未激活时 Awake 不会执行，需要就地初始化
+        if (currentSceneName == null)
+            currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
         // 城镇场景
         if (InTown() && data.inScenePortals.Count > 0)
         {
@@ -120,6 +124,9 @@ public class Object_Portal : MonoBehaviour, ISaveable
     /// </summary>
     public void SaveData(ref GameData data)
     {
+        if (currentSceneName == null)
+            currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
         data.returningFromTown = InTown();
 
         if (isActive && !InTown())

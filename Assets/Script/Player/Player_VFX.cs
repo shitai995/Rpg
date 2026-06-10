@@ -7,7 +7,6 @@
 
 using UnityEngine;
 using System.Collections;
-using UnityEditor;
 
 public class Player_VFX : Entity_VFX
 {

@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b37b4bc546e68b4fbb30afe13456fb5, type: 3}
+  m_Script: {fileID: 11500000, guid: a299b7cae3b27a449bdc5b520e3f03ca, type: 3}
   m_Name: Consumable data - Portal Scroll
   m_EditorClassIdentifier: 
   itemPrice: 100
@@ -20,7 +20,7 @@ MonoBehaviour:
   maxDropChance: 65
   craftRecipe: []
   itemName: Portal Scroll
-  itemIcon: {fileID: 1186909203, guid: 7ae0115109b4a6f42a4f7ad59397d09b, type: 3}
+  itemIcon: {fileID: 445226266, guid: bc98be45c3d95fb419be01dcd37d077a, type: 3}
   itemType: 4
   maxStackSize: 20
-  itemEffect: {fileID: 11400000, guid: 5e88aefc92812614d85b1a9dd67a3bd0, type: 2}
+  itemEffect: {fileID: 11400000, guid: daa1559d69621a64b8935891bcfd11ee, type: 2}

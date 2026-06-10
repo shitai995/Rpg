@@ -96,6 +96,10 @@ public class UI_TreeNode : MonoBehaviour, IPointerEnterHandler,IPointerExitHandl
     }
     public void UnlockWithSaveData()
     {
+        // GameObject 未激活时 Start 不会执行，需要就地初始化
+        if (connectHandler == null)
+            GetNeededComponents();
+
         isUnlocked = true;
         UpdateIconColor(Color.white);
         LockConflictNodes();
@@ -142,6 +146,9 @@ public class UI_TreeNode : MonoBehaviour, IPointerEnterHandler,IPointerExitHandl
     /// </summary>
     public void LockChildNodes()
     {
+        if (connectHandler == null)
+            GetNeededComponents();
+
         isLocked = true;
 
         foreach(var node in connectHandler.GetChildNodes())

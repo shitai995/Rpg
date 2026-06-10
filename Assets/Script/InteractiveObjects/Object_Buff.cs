@@ -39,6 +39,7 @@ public class Object_Buff : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         statsToModify = collision.GetComponent<Player_Stats>();
+        if (statsToModify == null) return;
         // 检查是否可施加该Buff
         if (statsToModify.CanApplyBuffOf(buffName))
         {

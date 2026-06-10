@@ -13,6 +13,8 @@ using UnityEngine;
 /// </summary>
 public class UI : MonoBehaviour
 {
+    public static UI instance;
+
     [SerializeField] private GameObject[] uiElements;
     public bool alternativeInput { get; private set; }
     private PlayerInputSet input;
@@ -31,6 +33,8 @@ public class UI : MonoBehaviour
     public UI_Merchant merchantUI { get; private set; }
     public UI_InGame inGameUI { get; private set; }
     public UI_Options optionsUI { get; private set; }
+    public UI_DeathScreen deathScreenUI { get; private set; }
+    public UI_FadeScreen fadeScreenUI { get; private set; }
     #endregion
 
     // 界面开关状态
@@ -52,7 +56,8 @@ public class UI : MonoBehaviour
         merchantUI = GetComponentInChildren<UI_Merchant>(true);
         inGameUI = GetComponentInChildren<UI_InGame>(true);
         optionsUI = GetComponentInChildren<UI_Options>(true);
-
+        deathScreenUI = GetComponentInChildren<UI_DeathScreen>(true);
+        fadeScreenUI = GetComponentInChildren<UI_FadeScreen>(true);
         // 记录界面初始激活状态
         skillTreeEnabled = skillTreeUI.gameObject.activeSelf;
         inventoryEnabled = inventoryUI.gameObject.activeSelf;
@@ -97,7 +102,11 @@ public class UI : MonoBehaviour
             OpenOptionsUI();
         };
     }
-
+    public void OpenDeathScreenUI()
+    {
+        SwitchTo(deathScreenUI.gameObject);
+        input.Disable(); // pay attention to this if you use gamepad
+    }
     /// <summary>
     /// 打开设置面板
     /// </summary>
@@ -115,7 +124,7 @@ public class UI : MonoBehaviour
     {
         HideAllTooltips();
         StopPlayerControls(false);
-        SwitchTo(optionsUI.gameObject);
+        SwitchTo(inGameUI.gameObject);
 
         skillTreeEnabled = false;
         inventoryEnabled = false;
@@ -165,7 +174,8 @@ public class UI : MonoBehaviour
     public void ToggleSkillTreeUI()
     {
         skillTreeUI.transform.SetAsLastSibling();
-        SetToolTipsAsLastSibling();
+        SetTooltipsAsLastSibling();
+        fadeScreenUI.transform.SetAsLastSibling();
 
         skillTreeEnabled = !skillTreeEnabled;
         skillTreeUI.gameObject.SetActive(skillTreeEnabled);
@@ -180,7 +190,8 @@ public class UI : MonoBehaviour
     public void ToggleInventoryUI()
     {
         inventoryUI.transform.SetAsLastSibling();
-        SetToolTipsAsLastSibling();
+        SetTooltipsAsLastSibling();
+        fadeScreenUI.transform.SetAsLastSibling();
 
         inventoryEnabled = !inventoryEnabled;
         inventoryUI.gameObject.SetActive(inventoryEnabled);
@@ -230,7 +241,7 @@ public class UI : MonoBehaviour
     /// <summary>
     /// 把所有提示框层级置到最顶层
     /// </summary>
-    private void SetToolTipsAsLastSibling()
+    private void SetTooltipsAsLastSibling()
     {
         itemToolTip.transform.SetAsLastSibling();
         skillToolTip.transform.SetAsLastSibling();

@@ -9,6 +9,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 存档管理单例类
@@ -26,7 +27,13 @@ public class SaveManager : MonoBehaviour
 
     private void Awake()
     {
+        if (instance != null && instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     private IEnumerator Start()
@@ -34,9 +41,25 @@ public class SaveManager : MonoBehaviour
         Debug.Log(Application.persistentDataPath);
         // 初始化文件读写器
         dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, encryptData);
+        // 注册场景加载事件，每次切场景重新查找存档对象
+        SceneManager.sceneLoaded += OnSceneLoaded;
         // 查找场景中所有可存档对象
         allSaveables = FindISaveables();
 
+        yield return null;
+        LoadGame();
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        StartCoroutine(OnSceneLoadedCo());
+    }
+
+    private IEnumerator OnSceneLoadedCo()
+    {
+        allSaveables = FindISaveables();
+        // 等待两帧：第一帧确保 Awake 执行，第二帧确保 Start 执行
+        yield return null;
         yield return null;
         LoadGame();
     }
@@ -87,6 +110,11 @@ public class SaveManager : MonoBehaviour
         dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, encryptData);
         dataHandler.Delete();
         LoadGame();
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     // 应用退出时自动存档

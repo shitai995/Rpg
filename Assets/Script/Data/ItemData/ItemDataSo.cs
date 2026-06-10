@@ -5,7 +5,6 @@
 // 描述：所有道具的基础数据类（材料/消耗品/装备通用）
 // ========================================================
 
-using UnityEditor;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "RPG Setup/Item Data/Material item", fileName = "Material data - ")]
@@ -44,8 +43,8 @@ public class ItemDataSO : ScriptableObject
         dropChance = GetDropChance();
 
 #if UNITY_EDITOR
-        string path = AssetDatabase.GetAssetPath(this);
-        saveId = AssetDatabase.AssetPathToGUID(path);
+        string path = UnityEditor.AssetDatabase.GetAssetPath(this);
+        saveId = UnityEditor.AssetDatabase.AssetPathToGUID(path);
 #endif
     }
 

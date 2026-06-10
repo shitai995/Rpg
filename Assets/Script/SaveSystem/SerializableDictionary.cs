@@ -29,7 +29,7 @@ public class SerializableDictionary<Tkey, TValue> : Dictionary<Tkey, TValue>, IS
 
         for (int i = 0; i < keys.Count; i++)
         {
-            Add(keys[i], values[i]);
+            this[keys[i]] = values[i];
         }
     }
 

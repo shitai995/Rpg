@@ -169,7 +169,7 @@ public class Entity_Health : MonoBehaviour,IDamgable
     public float GetCurrentHealth() => currentHealth;
     private void UpdateHealthBar()
     {
-        if (healthBar == null && healthBar.transform.parent.gameObject.activeSelf == false)
+        if (healthBar == null || healthBar.transform.parent.gameObject.activeSelf == false)
             return;
 
         healthBar.value = currentHealth / entityStats.GetMaxHealth();
