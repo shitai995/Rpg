@@ -27,8 +27,9 @@ public class Object_Blacksmith : Object_NPC, IInteractable
     /// <summary>
     /// 玩家交互：打开储物 + 合成界面
     /// </summary>
-    public void Interact()
+    public override void Interact()
     {
+        base.Interact();
         ui.storageUI.SetupStorageUI(storage);
         ui.craftUI.SetupCraftUI(storage);
 

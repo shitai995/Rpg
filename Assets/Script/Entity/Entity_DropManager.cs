@@ -20,7 +20,11 @@ public class Entity_DropManager : MonoBehaviour
     [Header("掉落限制")]
     [SerializeField] private int maxRarityAmount = 1200; // 稀有度总值上限
     [SerializeField] private int maxItemsToDrop = 3;      // 最大掉落物品数量
-
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.X))
+            DropItems();
+    }
     /// <summary>
     /// 执行物品掉落逻辑
     /// </summary>
@@ -44,7 +48,7 @@ public class Entity_DropManager : MonoBehaviour
     /// <summary>
     /// 生成掉落物实例
     /// </summary>
-    protected void CreateItemDrop(ItemDataSO itemToDrop)
+    public void CreateItemDrop(ItemDataSO itemToDrop)
     {
         GameObject newItem = Instantiate(itemDropPrefab, transform.position, Quaternion.identity);
         newItem.GetComponent<Object_ItemPickup>().SetupItem(itemToDrop);

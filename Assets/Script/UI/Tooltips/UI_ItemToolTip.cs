@@ -4,7 +4,6 @@
 // 描述：物品提示框UI，显示道具名称、类型、属性、效果描述
 // ========================================================
 
-using System.Text;
 using TMPro;
 using UnityEngine;
 
@@ -29,13 +28,22 @@ public class UI_ItemToolTip : UI_ToolTip
     /// <param name="itemToShow">要显示的物品</param>
     /// <param name="buyPrice">true=显示购买价 false=显示出售价</param>
     /// <param name="showMerchantInfo">是否显示商人界面的价格布局</param>
-    public void ShowToolTip(bool show, RectTransform targetRect, Inventory_Item itemToShow, bool buyPrice = false, bool showMerchantInfo = false)
+    public void ShowToolTip(bool show, RectTransform targetRect, Inventory_Item itemToShow, bool buyPrice = false, bool showMerchantInfo = false, bool showControls = false)
     {
         base.ShowToolTip(show, targetRect);
 
-        // 切换商人/普通界面布局
-        merchnatInfo.gameObject.SetActive(showMerchantInfo);
-        inventoryInfo.gameObject.SetActive(!showMerchantInfo);
+        if (showControls)
+        {
+            // 切换商人/普通界面布局
+            merchnatInfo.gameObject.SetActive(showMerchantInfo);
+            inventoryInfo.gameObject.SetActive(!showMerchantInfo);
+        }
+        else
+        {
+            merchnatInfo.gameObject.SetActive(false);
+            inventoryInfo.gameObject.SetActive(false);
+        }
+
 
         // 计算价格
         int price = buyPrice ? itemToShow.buyPrice : Mathf.FloorToInt(itemToShow.sellPrice);

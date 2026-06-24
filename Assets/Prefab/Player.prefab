@@ -856,6 +856,7 @@ GameObject:
   - component: {fileID: 1835773492589973777}
   - component: {fileID: 3040641878513294108}
   - component: {fileID: 7461132540259073722}
+  - component: {fileID: 1577585942890188591}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -959,6 +960,13 @@ MonoBehaviour:
   - {x: 1, y: 2.5}
   - {x: 5, y: 2.5}
   jumpAttackVelocity: {x: 5, y: -6}
+  jumpCutMultiplier: 0.4
+  coyoteTime: 0.12
+  jumpBufferTime: 0.1
+  wallJumpWallDetectDelay: 0.2
+  lastGroundedTime: 0
+  lastJumpPressTime: 0
+  lastWallJumpTime: 0
   attackVelocityDuration: 0.1
   comboResetTime: 1
   riseSpeed: 25
@@ -1222,3 +1230,18 @@ MonoBehaviour:
   maxRarityAmount: 1200
   maxItemsToDrop: 3
   chanceToLooseItem: 90
+--- !u!114 &1577585942890188591
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8403985852467960488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 997680bef920f9645b9666ddc95c8937, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  activeQuests: []
+  completedQuests: []
+  questDatabase: {fileID: 11400000, guid: 40eb4a74d2e31684f808fc0422b0f051, type: 2}

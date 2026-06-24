@@ -5,16 +5,22 @@
 // 描述：NPC 基础交互类（面向玩家转向、交互提示浮动）
 // ========================================================
 
+using System.Globalization;
 using UnityEngine;
 
 /// <summary>
 /// NPC 基类：实现自动转向玩家、交互提示浮动效果
 /// </summary>
-public class Object_NPC : MonoBehaviour
+public class Object_NPC : MonoBehaviour,IInteractable
 {
     protected Transform player;
     protected UI ui;
+    protected Player_QuestManager questManager;
 
+    [Header("Quest Info")]
+    [SerializeField] private string npcTargetQuestId;
+    [SerializeField] protected RewardType rewardNpc;
+    [Space]
     [SerializeField] private Transform npc;               // NPC 模型节点
     [SerializeField] private GameObject interactToolTip; // 交互提示（按E图标）
     private bool facingRight = true;
@@ -30,7 +36,10 @@ public class Object_NPC : MonoBehaviour
         startPosition = interactToolTip.transform.position;
         interactToolTip.SetActive(false);
     }
-
+    protected virtual void Start()
+    {
+        questManager = Player.instance.questManager;
+    }
     protected virtual void Update()
     {
         HandleNpcFlip();
@@ -81,5 +90,10 @@ public class Object_NPC : MonoBehaviour
         if (!collision.CompareTag("Player")) return;
         interactToolTip.SetActive(false);
         player = null;
+    }
+
+    public virtual void Interact()
+    {
+        questManager.AddProgress(npcTargetQuestId);
     }
 }

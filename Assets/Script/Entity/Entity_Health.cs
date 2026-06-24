@@ -45,6 +45,10 @@ public class Entity_Health : MonoBehaviour,IDamgable
         dropManager = GetComponent<Entity_DropManager>();
         SetupHealth();
     }
+    protected virtual void Start()
+    {
+
+    }
     /// <summary>
     /// 初始化血量与血条
     /// </summary>

@@ -100,7 +100,53 @@ public class Inventory_Base : MonoBehaviour,ISaveable
             RemoveOneItem(itemToRemove);
         }
     }
+    /// <summary>
+    /// 扣除指定数量道具
+    /// </summary>
+    /// <param name="itemToRemove">目标道具配置</param>
+    /// <param name="amount">要扣除总数</param>
+    public void RemoveItemAmount(ItemDataSO itemToRemove, int amount)
+    {
+        for (int i = 0; i < itemList.Count; i++)
+        {
+            Inventory_Item item = itemList[i];
+            // 道具不匹配跳过
+            if (item.itemData != itemToRemove)
+                continue;
 
+            // 当前格子最多可扣除数量
+            int removeCount = Mathf.Min(amount, item.stackSize);
+            // 逐个移除单份道具
+            for (int j = 0; j < removeCount; j++)
+            {
+                RemoveOneItem(item);
+                amount--;
+                if (amount <= 0) break;
+            }
+            // 扣完目标数量直接退出循环
+            if (amount <= 0) break;
+        }
+    }
+
+    /// <summary>
+    /// 判断背包是否拥有足够数量指定道具
+    /// </summary>
+    /// <param name="itemToCheck">道具配置</param>
+    /// <param name="amount">需要的数量</param>
+    /// <returns>true=道具充足</returns>
+    public bool HasItemAmount(ItemDataSO itemToCheck, int amount)
+    {
+        int total = 0;
+        foreach (var item in itemList)
+        {
+            if (item.itemData == itemToCheck)
+                total += item.stackSize;
+            // 累计满足需求提前返回
+            if (total >= amount)
+                return true;
+        }
+        return false;
+    }
     /// <summary> 在背包中查找物品 </summary>
     public Inventory_Item FindItem(Inventory_Item itemToFind)
     {

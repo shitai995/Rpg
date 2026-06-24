@@ -31,6 +31,9 @@ public class GameData
     public SerializableDictionary<string, bool> unlockedCheckpoints; // 已解锁存档点
     public SerializableDictionary<string, Vector3> inScenePortals;  // 场景传送门位置
 
+    public SerializableDictionary<string, bool> completedQuests; // 已完成任务
+    public SerializableDictionary<string, int> activeQuests;    // 当前进行中任务
+
     public string portalDestinationSceneName; // 传送目标场景名
     public bool returningFromTown;            // 是否从城镇返回
 
@@ -50,5 +53,8 @@ public class GameData
 
         unlockedCheckpoints = new SerializableDictionary<string, bool>();
         inScenePortals = new SerializableDictionary<string, Vector3>();
+
+        completedQuests = new SerializableDictionary<string, bool>();
+        activeQuests = new SerializableDictionary<string, int>();
     }
 }

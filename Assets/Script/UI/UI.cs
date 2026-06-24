@@ -35,6 +35,8 @@ public class UI : MonoBehaviour
     public UI_Options optionsUI { get; private set; }
     public UI_DeathScreen deathScreenUI { get; private set; }
     public UI_FadeScreen fadeScreenUI { get; private set; }
+    public UI_Quest questUI { get; private set; }
+    public UI_Dialogue dialogueUI { get; private set; }
     #endregion
 
     // 界面开关状态
@@ -58,6 +60,8 @@ public class UI : MonoBehaviour
         optionsUI = GetComponentInChildren<UI_Options>(true);
         deathScreenUI = GetComponentInChildren<UI_DeathScreen>(true);
         fadeScreenUI = GetComponentInChildren<UI_FadeScreen>(true);
+        questUI = GetComponentInChildren<UI_Quest>(true);
+        dialogueUI = GetComponentInChildren<UI_Dialogue>(true);
         // 记录界面初始激活状态
         skillTreeEnabled = skillTreeUI.gameObject.activeSelf;
         inventoryEnabled = inventoryUI.gameObject.activeSelf;
@@ -100,6 +104,19 @@ public class UI : MonoBehaviour
             // 无界面则暂停游戏并打开设置
             Time.timeScale = 0;
             OpenOptionsUI();
+        };
+
+        input.UI.DialogueInteraction.performed += ctx =>
+        {
+            if (dialogueUI.gameObject.activeInHierarchy)
+                dialogueUI.DialogueInteraction();
+        };
+        input.UI.DialogueNavigation.performed += ctx =>
+        {
+            int direction = Mathf.RoundToInt(ctx.ReadValue<float>());
+
+            if (dialogueUI.gameObject.activeInHierarchy)
+                dialogueUI.NavigateChoice(direction);
         };
     }
     public void OpenDeathScreenUI()
@@ -200,6 +217,24 @@ public class UI : MonoBehaviour
         StopPlayerControlsIfNeeded();
     }
 
+    public void OpenDialogueUI(DialogueLineSO firstLine,DialogueNpcData npcData)
+    {
+        StopPlayerControls(true);
+        HideAllTooltips();
+
+        dialogueUI.gameObject.SetActive(true);
+        dialogueUI.SetupNpcData(npcData);
+        dialogueUI.PlayDialogueLine(firstLine);
+    }
+    public void OpenQuestUI(QuestDataSO[] questsToShow)
+    {
+        StopPlayerControls(true);
+        HideAllTooltips();
+
+        questUI.gameObject.SetActive(true);
+        questUI.SetupQuestUI(questsToShow);
+    }
+
     /// <summary>
     /// 开启/关闭仓库界面
     /// </summary>
@@ -215,7 +250,18 @@ public class UI : MonoBehaviour
             HideAllTooltips();
         }
     }
+    public void OpenCraftUI(bool openStorageUI)
+    {
+        craftUI.gameObject.SetActive(openStorageUI);
+        StopPlayerControls(openStorageUI);
 
+        // 关闭仓库时同步关闭合成界面与提示
+        if (!openStorageUI)
+        {
+            storageUI.gameObject.SetActive(false);
+            HideAllTooltips();
+        }
+    }
     /// <summary>
     /// 开启/关闭商店界面
     /// </summary>

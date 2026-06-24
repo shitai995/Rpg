@@ -27,7 +27,7 @@ public class Player : Entity
     public Player_Combat combat { get; private set; }
     public Inventory_Player inventory { get; private set; }
     public Player_Stats stats { get; private set; }
-
+    public Player_QuestManager questManager { get; private set; }   
     #region State Varisbles
     // 所有玩家状态实例（供状态切换使用）
     public Player_IdleState idleState { get; private set; }
@@ -103,6 +103,7 @@ public class Player : Entity
         combat = GetComponent<Player_Combat>();
         inventory = GetComponent<Inventory_Player>();
         stats = GetComponent<Player_Stats>();
+        questManager = GetComponent<Player_QuestManager>();
 
         input = new PlayerInputSet();
         ui.SetupControlsUI(input);
