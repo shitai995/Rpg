@@ -6,182 +6,148 @@
 // 核心功能：元素伤害/抗性、物理伤害/暴击、护甲减伤/闪避等战斗数值的最终计算
 // ========================================================
 
-
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Entity_Stats : MonoBehaviour
 {
-    public Stat_SetupSO defaultStatSetup;
+    // 默认属性配置表
+    public StatSetupDataSO defaultStatSetup;
 
+    // 属性分组
+    public Stat_ResourceGroup resources;    // 生命/资源类
+    public Stat_OffenseGroup offense;       // 攻击类
+    public Stat_DefenseGroup defense;       // 防御类
+    public Stat_MajorGroup major;           // 主属性（力/敏/智/体）
 
-    public Stat_ResourceGroup resources; // 基础最大生命值
-    public Stat_OffenseGroup offense; // 进攻属性分组
-    public Stat_DefenseGroup defense; // 防御属性分组
-    public Stat_MajorGroup major;   // 核心属性分组
+    protected virtual void Awake() { }
 
+    public void AdiustStatSetup(Stat_ResourceGroup resourceGroup,Stat_OffenseGroup offenseGroup,Stat_DefenseGroup defenseGroup,float penalty,float increase)
+    {
+
+        offense.damage.SetBaseValue(offenseGroup.damage.GetValue() * increase);
+        offense.attackSpeed.SetBaseValue(offenseGroup.attackSpeed.GetValue() * increase);
+        offense.critChance.SetBaseValue(offenseGroup.critChance.GetValue() * increase);
+        offense.critPower.SetBaseValue(offenseGroup.critPower.GetValue() * increase);
+        offense.fireDamage.SetBaseValue(offenseGroup.fireDamage.GetValue() * increase); 
+        offense.iceDamage.SetBaseValue(offenseGroup.iceDamage.GetValue() * increase);
+        offense.lightningDamage.SetBaseValue(offenseGroup.lightningDamage.GetValue() * increase);
+
+        defense.evasion.SetBaseValue(defenseGroup.evasion.GetValue() * increase);
+
+        resources.maxHealth.SetBaseValue(resourceGroup.maxHealth.GetValue() * penalty);
+        resources.healthRegen.SetBaseValue(resourceGroup.healthRegen.GetValue() * penalty);
+
+        defense.armor.SetBaseValue(defenseGroup.armor.GetValue() * penalty);
+        defense.lightningRes.SetBaseValue(defenseGroup.lightningRes.GetValue() * penalty);
+        defense.fireRes.SetBaseValue(defenseGroup.fireRes.GetValue() * penalty);
+        defense.iceRes.SetBaseValue(defenseGroup.iceRes.GetValue() * penalty);
+
+    }
+
+    // 获取攻击数据（伤害+类型）
     public AttackData GetAttackData(DamageScaleData scaleData)
     {
-        return new AttackData(this, scaleData); 
+        return new AttackData(this, scaleData);
     }
-    /// <summary>
-    /// 获取最终元素伤害值，输出本次触发的主元素类型
-    /// </summary>
+
+    // 计算最终元素伤害（最高元素全额，其余50% + 智力加成）
     public float GetElementalDamage(out ElementType element, float scaleFactor = 1)
     {
-        // 获取三系基础元素伤害值
-        float fireDamage = offense.fireDamage.GetValue();
-        float iceDamage = offense.iceDamage.GetValue();
-        float lightningDamage = offense.lightningDamage.GetValue();
-        // 智力提供固定元素伤害加成
-        float bonusElementalDamage = major.intelligence.GetValue();
-        // 默认取火焰伤害为主属性
-        float highestDamage = fireDamage;
+        float fireDmg = offense.fireDamage.GetValue();
+        float iceDmg = offense.iceDamage.GetValue();
+        float lightningDmg = offense.lightningDamage.GetValue();
+        float intBonus = major.intelligence.GetValue();
+
+        // 找出最高伤害元素
+        float highest = fireDmg;
         element = ElementType.Fire;
-        // 对比替换最高伤害的元素类型
-        if (iceDamage > highestDamage)
-        {
-            highestDamage = iceDamage;
-            element = ElementType.Ice;
-        }
 
-        if (lightningDamage > highestDamage)
-        {
-            highestDamage = lightningDamage;
-            element = ElementType.Lightning;
-        }
+        if (iceDmg > highest) { highest = iceDmg; element = ElementType.Ice; }
+        if (lightningDmg > highest) { highest = lightningDmg; element = ElementType.Lightning; }
 
-        if (highestDamage <= 0)
-        {
-            element = ElementType.None;
-            return 0;
-        }
-        // 非主属性的元素伤害，仅提供50%的伤害加成
-        float bonusFire = (fireDamage == highestDamage) ? 0 : fireDamage * .5f;
-        float bonusIce = (iceDamage == highestDamage) ? 0 : iceDamage * .5f;
-        float bonusLightning = (lightningDamage == highestDamage) ? 0 : lightningDamage * .5f;
+        if (highest <= 0) { element = ElementType.None; return 0; }
 
-        // 计算总附加元素伤害 + 智力加成 = 最终元素伤害
-        float weakerElementsDamage = bonusFire + bonusIce + bonusLightning;
-        float finalDamage = highestDamage + weakerElementsDamage + bonusElementalDamage;
+        // 非最高元素只算50%
+        float bonusFire = fireDmg == highest ? 0 : fireDmg * .5f;
+        float bonusIce = iceDmg == highest ? 0 : iceDmg * .5f;
+        float bonusLightning = lightningDmg == highest ? 0 : lightningDmg * .5f;
 
-        return finalDamage * scaleFactor;
+        float total = highest + bonusFire + bonusIce + bonusLightning + intBonus;
+        return total * scaleFactor;
     }
 
-    /// <summary>
-    /// 元素抵抗
-    /// </summary>
+    // 获取元素抗性（智力提供额外抗性，上限75%）
     public float GetElementalResistance(ElementType element)
     {
-        float baseResistance = 0; ;
-        // 智力提供全元素抗性加成
-        float bonusResistance = major.intelligence.GetValue() * .5f;
-        // 根据元素类型获取对应基础抗性
+        float baseRes = 0;
+        float intBonus = major.intelligence.GetValue() * .5f;
+
         switch (element)
         {
-            case ElementType.Fire:
-                baseResistance = defense.fireRes.GetValue();
-                break;
-            case ElementType.Ice:
-                baseResistance = defense.iceRes.GetValue();
-                break;
-            case ElementType.Lightning:
-                baseResistance = defense.lightningRes.GetValue();
-                break;
+            case ElementType.Fire: baseRes = defense.fireRes.GetValue(); break;
+            case ElementType.Ice: baseRes = defense.iceRes.GetValue(); break;
+            case ElementType.Lightning: baseRes = defense.lightningRes.GetValue(); break;
         }
-        // 计算总抗性，上限75%，转换为0~1的系数
-        float resistance = baseResistance + bonusResistance;
-        float resistanceCap = 75f;
-        float finalResistanec = Mathf.Clamp(resistance, 0, resistanceCap) / 100;
 
-        return finalResistanec;
-
+        float res = Mathf.Clamp(baseRes + intBonus, 0, 75);
+        return res / 100;
     }
-    /// <summary>
-    /// 计算物理最终伤害，输出是否暴击
-    /// </summary>
+
+    // 计算物理伤害（含暴击判定）
     public float GetPhyiscalDamage(out bool isCrit, float scaleFactor = 1)
     {
-        // 1. 计算基础总伤害
-        float baseDamage = offense.damage.GetValue();
-        float bonusDamage = major.strength.GetValue();
-        float totalBaseDamage = baseDamage + bonusDamage;
+        float dmg = GetBaseDamage();
+        float critChance = GetCritChance();
+        float critPower = GetCritPower() / 100;
 
-        // 2. 计算最终暴击概率（并添加边界校验，避免异常值）
-        float baseCritChance = offense.critChance.GetValue();
-        float bonusCritChance = major.agility.GetValue() * .3f;
-        float critChance = baseCritChance + bonusCritChance;
-
-        // 3. 计算最终暴击倍率（并添加边界校验，避免暴击倍率低于1倍）
-        float baseCritPower = offense.critPower.GetValue();
-        float bonusCritPower = major.strength.GetValue() * .5f;
-        float critPower = (baseCritPower + bonusCritPower) / 100;
-
-        // 4. 优化随机数判定，使用浮点型重载保证精度
         isCrit = Random.Range(0, 100) < critChance;
-        float finalDamage = isCrit ? totalBaseDamage * critPower : totalBaseDamage;
-        // 5. 计算并返回最终伤害
-        return finalDamage * scaleFactor;
+        float final = isCrit ? dmg * critPower : dmg;
+        return final * scaleFactor;
     }
-    /// <summary>
-    /// 计算护甲减伤比例（受破甲影响）
-    /// </summary>
+
+    // 基础物理伤害 = 攻击力 + 力量
+    public float GetBaseDamage() => offense.damage.GetValue() + major.strength.GetValue();
+    // 暴击率 = 基础值 + 敏捷*0.3
+    public float GetCritChance() => offense.critChance.GetValue() + major.agility.GetValue() * .3f;
+    // 暴击伤害 = 基础值 + 力量*0.5
+    public float GetCritPower() => offense.critPower.GetValue() + major.strength.GetValue() * .5f;
+
+    // 计算护甲减伤（受破甲影响，上限85%）
     public float GetArmorMitigation(float armorReduction)
     {
-        // 1. 计算总护甲值（基础护甲 + 活力属性带来的护甲加成）
-        float baseArmor = defense.armor.GetValue();
-        float bonusArmor = major.vitality.GetValue();
-        float totalArmor = baseArmor + bonusArmor;
+        float armor = GetBaseArmor();
+        float mult = Mathf.Clamp(1 - armorReduction, 0, 1);
+        float effectiveArmor = armor * mult;
 
-        // 2. 计算破甲抵消后的有效护甲
-        float reductionMutliplier = Mathf.Clamp(1 - armorReduction, 0, 1);
-        float effectiveArmor = totalArmor * reductionMutliplier;
-
-        // 3. 计算基础护甲减伤比例（经典护甲减伤公式：有效护甲÷（有效护甲+100））
         float mitigation = effectiveArmor / (effectiveArmor + 100);
-        float mitigationCap = .85f;
-
-        float finalMitigation = Mathf.Clamp(mitigation, 0, mitigationCap);
-
-        return finalMitigation;
+        return Mathf.Clamp(mitigation, 0, .85f);
     }
-    /// <summary>
-    /// 获取最终破甲倍率（转换为0~1的系数）
-    /// </summary>
-    public float GetArmorReduction()
-    {
-        float finalReduction = offense.armorReduction.GetValue() / 100;
 
-        return finalReduction;
-    }
-    /// <summary>
-    /// 获取最终闪避率（上限85%）
-    /// </summary>
+    // 护甲 = 基础值 + 活力
+    public float GetBaseArmor() => defense.armor.GetValue() + major.vitality.GetValue();
+
+    // 获取破甲百分比
+    public float GetArmorReduction() => offense.armorReduction.GetValue() / 100;
+
+    // 闪避率 = 基础值 + 敏捷*0.5，上限85%
     public float GetEvasion()
     {
-
-        // 1. 计算总闪避率（基础闪避率 + 敏捷属性带来的闪避率加成）
         float baseEvasion = defense.evasion.GetValue();
-        float bonusEvasion = major.agility.GetValue() * .5f;
-
-        float totalEvasion = baseEvasion + bonusEvasion;
-        float evasionCap = 85f;
-        // 限制敏捷范围
-        float finalEvasion = Mathf.Clamp(totalEvasion, 0, evasionCap);
-
-        return finalEvasion;
+        float agiBonus = major.agility.GetValue() * .5f;
+        return Mathf.Clamp(baseEvasion + agiBonus, 0, 85);
     }
-    /// <summary>
-    /// 获取最终最大生命值
-    /// </summary>
+
+    // 最大生命 = 基础值 + 活力*5
     public float GetMaxHealth()
     {
-        float baseMaxHealth = resources.maxHealth.GetValue();
-        float bonusMaxHealth = major.vitality.GetValue() * 5;
-        float finalMaxHealth = baseMaxHealth + bonusMaxHealth;
-
-        return finalMaxHealth;
+        float baseHp = resources.maxHealth.GetValue();
+        float vitBonus = major.vitality.GetValue() * 5;
+        return baseHp + vitBonus;
     }
 
+    // 根据类型获取对应属性
     public Stat GetStatByType(StatType type)
     {
         switch (type)
@@ -211,22 +177,16 @@ public class Entity_Stats : MonoBehaviour
             case StatType.FireResistance: return defense.fireRes;
             case StatType.LightningResistance: return defense.lightningRes;
 
-            default:
-                Debug.LogWarning($"StatType {type} not implemented yet.");
-                return null;
-
+            default: Debug.LogWarning($"StatType {type} 未实现"); return null;
         }
-
     }
+
+    // 应用默认属性配置
     [ContextMenu("Update Default Stat Setup")]
-    // 把配置文件里的maxHealth值，设为当前实体maxHealth属性的基础值
     public void ApplyDefaultStatSetup()
     {
-        if (defaultStatSetup == null)
-        {
-            Debug.Log("No default stat setup assigned");
-            return;
-        }
+        if (defaultStatSetup == null) return;
+
         resources.maxHealth.SetBaseValue(defaultStatSetup.maxHealth);
         resources.healthRegen.SetBaseValue(defaultStatSetup.healthRegen);
 
@@ -251,7 +211,5 @@ public class Entity_Stats : MonoBehaviour
         defense.iceRes.SetBaseValue(defaultStatSetup.iceResistance);
         defense.fireRes.SetBaseValue(defaultStatSetup.fireResistance);
         defense.lightningRes.SetBaseValue(defaultStatSetup.lightningResistance);
-
     }
-
 }

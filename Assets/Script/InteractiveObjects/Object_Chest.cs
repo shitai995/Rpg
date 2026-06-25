@@ -13,9 +13,18 @@ public class Object_Chest : MonoBehaviour, IDamgable
     private Animator anim => GetComponentInChildren<Animator>();
     private Entity_VFX fx => GetComponentInChildren<Entity_VFX>();
 
+    private Entity_DropManager dropManager => GetComponent<Entity_DropManager>();
+
+    [Header("Open Details")]
     [SerializeField] private Vector2 knockback;
+    [SerializeField] private bool canDropItems = true;
     public bool TakeDamage(float damage,float elementalDamage,ElementType element, Transform damageDealer)
     {
+        if (canDropItems == false)
+            return false;
+
+        canDropItems = false;
+        dropManager?.DropItems();
         // 1. 播放宝箱受击特效（如闪红、震动等）
         fx.PlayOnDamageVfx();
         // 2. 触发宝箱开启动画

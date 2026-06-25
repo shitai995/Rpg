@@ -2,7 +2,7 @@
 // 作者：娇娇 
 // 创建时间：2026-03-24 18:49:17
 // 版本：V1.1
-// 描述：
+// 描述：飞剑投掷技能（含穿透/旋转/弹跳/弹道预测）
 // ========================================================
 
 using UnityEngine;
@@ -12,34 +12,29 @@ public class Skill_SwordThrow : Skill_Base
     private SkillObject_Sword currentSword;
     private float currentThrowPower;
 
-    [Header("Regular Sword Upgade")]
+    [Header("普通飞剑")]
     [SerializeField] private GameObject swordPrefab;
-    [Range(0, 10)]
     [SerializeField] private float regularThrowPower = 5;
 
-    [Header("Pierce Sword Upgrade")]
+    [Header("穿透飞剑")]
     [SerializeField] private GameObject pierceSwordPrefab;
     public int amountToPierce = 2;
-    [Range(0, 10)]
     [SerializeField] private float pierceThrowPower = 5;
 
-    [Header("Spin Sword Upgrade")]
+    [Header("旋转飞剑")]
     [SerializeField] private GameObject spinSwordPrefab;
     public int maxDistance = 5;
     public float attacksPerSecond = 6;
     public float maxSpinDuration = 3;
-    [Range(0, 10)]
     [SerializeField] private float spinThrowPower = 5;
 
-    [Header("Bounce Sword Upgrade")]
+    [Header("弹跳飞剑")]
     [SerializeField] private GameObject bounceSwordPrefab;
     public int bounceCount = 5;
     public float bounceSpeed = 12;
-    [Range(0, 10)]
     [SerializeField] private float bounceThrowPower = 5;
 
-
-    [Header("Trajectory perdiction")]
+    [Header("弹道预测")]
     [SerializeField] private GameObject predictionDot;
     [SerializeField] private int numberOfDots = 20;
     [SerializeField] private float spaceBetweenDots = .05f;
@@ -53,6 +48,8 @@ public class Skill_SwordThrow : Skill_Base
         swordGravity = swordPrefab.GetComponent<Rigidbody2D>().gravityScale;
         dots = GenerateDots();
     }
+
+    // 技能使用条件：无飞剑在场才可释放
     public override bool CanUseSkill()
     {
         UpdateThrowPower();
@@ -61,9 +58,10 @@ public class Skill_SwordThrow : Skill_Base
             currentSword.GetSwordBackToPlayer();
             return false;
         }
-
         return base.CanUseSkill();
     }
+
+    // 投掷飞剑
     public void ThrowSword()
     {
         GameObject swordPrefab = GetSwordPrefab();
@@ -75,45 +73,34 @@ public class Skill_SwordThrow : Skill_Base
         SetSkillOnCooldown();
     }
 
+    // 根据解锁技能获取对应飞剑预制体
     private GameObject GetSwordPrefab()
     {
-        if (Unlocked(SkillUpgradeType.SwordThrow))
-            return swordPrefab;
-
-        if (Unlocked(SkillUpgradeType.SwordThrow_Pierce))
-            return pierceSwordPrefab;
-
-        if (Unlocked(SkillUpgradeType.SwordThrow_Spin))
-            return spinSwordPrefab;
-
-        if (Unlocked(SkillUpgradeType.SwordThrow_Bounce))
-            return bounceSwordPrefab;
+        if (Unlocked(SkillUpgradeType.SwordThrow)) return swordPrefab;
+        if (Unlocked(SkillUpgradeType.SwordThrow_Pierce)) return pierceSwordPrefab;
+        if (Unlocked(SkillUpgradeType.SwordThrow_Spin)) return spinSwordPrefab;
+        if (Unlocked(SkillUpgradeType.SwordThrow_Bounce)) return bounceSwordPrefab;
 
         Debug.Log("No valied sword upgrade selected");
         return null;
     }
 
+    // 根据技能类型更新投掷力度
     private void UpdateThrowPower()
     {
         switch (upgradeType)
         {
-            case SkillUpgradeType.SwordThrow:
-                currentThrowPower = regularThrowPower;
-                break;
-            case SkillUpgradeType.SwordThrow_Pierce:
-                currentThrowPower = pierceThrowPower; 
-                break;
-            case SkillUpgradeType.SwordThrow_Spin:
-                currentThrowPower = spinThrowPower; 
-                break;
-            case SkillUpgradeType.SwordThrow_Bounce:
-                currentThrowPower = bounceThrowPower; 
-                break;
+            case SkillUpgradeType.SwordThrow: currentThrowPower = regularThrowPower; break;
+            case SkillUpgradeType.SwordThrow_Pierce: currentThrowPower = pierceThrowPower; break;
+            case SkillUpgradeType.SwordThrow_Spin: currentThrowPower = spinThrowPower; break;
+            case SkillUpgradeType.SwordThrow_Bounce: currentThrowPower = bounceThrowPower; break;
         }
-
     }
 
+    // 获取最终投掷力度
     private Vector2 GetThrowPower() => confirmedDirection * (currentThrowPower * 10);
+
+    // 预测弹道轨迹
     public void PredictTrajectory(Vector2 direction)
     {
         for (int i = 0; i < dots.Length; i++)
@@ -121,32 +108,31 @@ public class Skill_SwordThrow : Skill_Base
             dots[i].position = GetTrajectoryPoint(direction, i * spaceBetweenDots);
         }
     }
+
+    // 计算单个弹道点
     private Vector2 GetTrajectoryPoint(Vector2 direction, float t)
     {
         float scaledThrowPower = currentThrowPower * 10;
-
         Vector2 initialVelocity = direction * scaledThrowPower;
-
         Vector2 gravityEffect = 0.5f * Physics2D.gravity * swordGravity * (t * t);
-
-        Vector2 predictedPoint = (initialVelocity * t) + gravityEffect;
-
-        Vector2 playerPosition = transform.root.position;
-
-        return playerPosition + predictedPoint;
+        Vector2 predictedPoint = initialVelocity * t + gravityEffect;
+        return (Vector2)transform.root.position + predictedPoint;
     }
+
+    // 确认投掷方向
     public void ConfirmTrajectory(Vector2 direction) => confirmedDirection = direction;
 
+    // 显示/隐藏弹道点
     public void EnableDots(bool enable)
     {
         foreach (Transform t in dots)
             t.gameObject.SetActive(enable);
     }
 
+    // 生成弹道预测点
     private Transform[] GenerateDots()
     {
         Transform[] newDots = new Transform[numberOfDots];
-
         for (int i = 0; i < numberOfDots; i++)
         {
             newDots[i] = Instantiate(predictionDot, transform.position, Quaternion.identity, transform).transform;

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 893e5ab88f177e44185c13d835881da4, type: 3}
+  m_Name: Skill data - Time echo
+  m_EditorClassIdentifier: 
+  displayName: Time echo
+  description: "\u521B\u9020\u4E00\u4E2A\u81EA\u5DF1\u7684\u65F6\u95F4\u56DE\u58F0\u3002\n\u8FD9\u4E2A\u56DE\u58F0\u4F1A\u5206\u6563\u654C\u4EBA\u7684\u6CE8\u610F\u529B\u3002"
+  icon: {fileID: -879961945, guid: bc98be45c3d95fb419be01dcd37d077a, type: 3}
+  cost: 1
+  unlockedByDefault: 0
+  skillType: 1
+  upgradeData:
+    upgradeType: 15
+    cooldown: 0
+    damageScaleData:
+      physical: 1
+      elemental: 1
+      chillDuration: 3
+      chillSlowMultiplier: 0.2
+      burnDuration: 3
+      burnDamageSacale: 1
+      shockDuration: 3
+      shockDamageScale: 1
+      shockCharge: 0.4

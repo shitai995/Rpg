@@ -11,7 +11,15 @@ public class Enemy_Health : Entity_Health
 {
 
 
-    private Enemy enemy => GetComponent<Enemy>();
+    private Enemy enemy;
+    private Player_QuestManager questManager;
+    protected override void Start()
+    {
+        base.Start();
+
+        enemy = GetComponent<Enemy>();
+        questManager = Player.instance.questManager;
+    }
 
     /// <summary>
     /// 重写基类的受击方法，扩展敌人专属逻辑
@@ -33,5 +41,11 @@ public class Enemy_Health : Entity_Health
             // 调用敌人核心逻辑，尝试进入战斗状态（传递伤害来源，用于敌人转向/追击玩家）
             enemy.TryEnterBattleState(damageDealer);
         return true;
+    }
+    protected override void Die()
+    {
+        base.Die();
+
+        questManager.AddProgress(enemy.questTargetId);
     }
 }

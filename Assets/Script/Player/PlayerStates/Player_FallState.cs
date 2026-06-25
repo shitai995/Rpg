@@ -18,12 +18,35 @@ public class Player_FallState : Player_AiredState
     {
         base.Update(); // 继承父类：空中移动、空中攻击输入检测
 
-        // 落地检测：检测到地面→切换到闲置状态
-        if (player.groundDetected)
-            stateMachine.ChangeState(player.idleState);
+        // 记录跳跃键按下时间（用于 Jump Buffer）
+        if (input.Player.Jump.WasPressedThisFrame())
+            player.lastJumpPressTime = Time.time;
 
-        // 撞墙检测：空中检测到墙壁→切换到滑墙状态
-        if (player.wallDetected)
+        // Coyote Time：离开平台的短暂时间内仍可跳跃
+        if (Time.time - player.lastJumpPressTime <= player.jumpBufferTime
+            && Time.time - player.lastGroundedTime <= player.coyoteTime)
+        {
+            player.lastJumpPressTime = 0; // 消耗缓冲
+            stateMachine.ChangeState(player.jumpState);
+            return;
+        }
+
+        // 落地检测：有跳跃缓冲则直接起跳，否则回到闲置
+        if (player.groundDetected)
+        {
+            if (Time.time - player.lastJumpPressTime <= player.jumpBufferTime)
+            {
+                player.lastJumpPressTime = 0; // 消耗缓冲
+                stateMachine.ChangeState(player.jumpState);
+            }
+            else
+            {
+                stateMachine.ChangeState(player.idleState);
+            }
+        }
+
+        // 撞墙检测：蹬墙跳冷却过后才检测墙壁，避免刚跳出去就被拉回
+        if (Time.time - player.lastWallJumpTime > player.wallJumpWallDetectDelay && player.wallDetected)
             stateMachine.ChangeState(player.wallSlideState);
     }
 }

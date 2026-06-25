@@ -17,13 +17,27 @@ public class Player_GroundedState : PlayerState
     {
         base.Update(); // 调用基类：计时器、Y轴速度传递、冲刺检测等通用逻辑
 
+        // 在地面时持续记录落地时间（用于 Coyote Time）
+        if (player.groundDetected)
+            player.lastGroundedTime = Time.time;
+
+        // 记录跳跃键按下时间（用于 Jump Buffer）
+        if (input.Player.Jump.WasPressedThisFrame())
+            player.lastJumpPressTime = Time.time;
+
         // 离地检测：竖直速度向下且未检测到地面→切换到下落状态（防止地面状态浮空）
         if (rb.linearVelocity.y < 0 && !player.groundDetected)
             stateMachine.ChangeState(player.fallState);
 
-        // 跳跃输入：检测跳跃键按下→切换到跳跃状态
-        if (input.Player.Jump.WasPressedThisFrame())
-            stateMachine.ChangeState(player.jumpState);
+        // 跳跃输入：地面 或 Coyote时间内都可以跳
+        if (Time.time - player.lastJumpPressTime <= player.jumpBufferTime)
+        {
+            if (player.groundDetected || Time.time - player.lastGroundedTime <= player.coyoteTime)
+            {
+                player.lastJumpPressTime = 0; // 消耗缓冲，防止重复触发
+                stateMachine.ChangeState(player.jumpState);
+            }
+        }
 
         // 攻击输入：检测攻击键按下→切换到基础攻击状态
         if (input.Player.Attack.WasPressedThisFrame())

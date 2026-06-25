@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b8d84bf77de7e47950c94362dbfe08, type: 3}
+  m_Name: Quest - It's Dangerous to Go Alone
+  m_EditorClassIdentifier: 
+  questSaveId: 8d7f9f970335f6a4ca9835770c47d655
+  questType: 0
+  questName: It's Dangerous to Go Alone
+  description: 'Since you''re just startin'' your adventure, you''ll need somethin''
+    to train with. I bought a sword off some wierd fella - looked half mad, but the
+    blade was decent. Wait, where''d I put it? Agh, right! Forgot it at Joe''s. Go
+    talk to the blacksmith - he''s holdin'' onto weapon worthy of a hero like you. '
+  questGoal: '- Talk to Blacksmith Joe'
+  questTargetId: blacksmith_joe
+  requiredAmount: 1
+  itemToDeliver: {fileID: 0}
+  rewardType: 0
+  rewardItems:
+  - itemData: {fileID: 11400000, guid: 6ad5486d8542af5469b1cb0c2a1d0c78, type: 2}
+    stackSize: 1
+    modifiers: []
+    itemEffect: {fileID: 0}

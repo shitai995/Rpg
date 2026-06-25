@@ -8,20 +8,26 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// 玩家控制器：统一管理输入、状态机、刚体和动画，协调各模块交互
 /// </summary>
 public class Player : Entity
 {
+    public static Player instance;
     public static event Action OnPlayerDeath;
 
-    private UI ui;
+    public UI ui {  get; private set; }
     public PlayerInputSet input { get; private set; } // 输入集合
     public Player_SkillManager skillManager { get; private set; }
     public Player_VFX vfx { get; private set; }
     public Entity_Health health { get; private set; }
     public Entity_StatusHandler statusHandler { get; private set; }
+    public Player_Combat combat { get; private set; }
+    public Inventory_Player inventory { get; private set; }
+    public Player_Stats stats { get; private set; }
+    public Player_QuestManager questManager { get; private set; }   
     #region State Varisbles
     // 所有玩家状态实例（供状态切换使用）
     public Player_IdleState idleState { get; private set; }
@@ -42,6 +48,14 @@ public class Player : Entity
     [Header("攻击相关配置")]
     public Vector2[] attackVelocity; // 攻击时移动速度数组（对应多段攻击）
     public Vector2 jumpAttackVelocity; // 跳跃攻击移动速度
+    public float jumpCutMultiplier = .4f;// 松手后保留多少上升速度
+    [Header("跳跃手感优化")]
+    public float coyoteTime = 0.12f; // 离开平台后仍可跳跃的容错时间
+    public float jumpBufferTime = 0.1f; // 落地前按跳跃键的缓冲时间
+    public float wallJumpWallDetectDelay = 0.2f; // 蹬墙跳后忽略墙壁检测的时长
+    [HideInInspector] public float lastGroundedTime; // 最后一次在地面的时间
+    [HideInInspector] public float lastJumpPressTime; // 最后一次按跳跃键的时间
+    [HideInInspector] public float lastWallJumpTime; // 最后一次蹬墙跳的时间
     public float attackVelocityDuration = .1f; // 攻击速度持续时间
     public float comboResetTime = 1; // 连招重置时间
     public Coroutine queuedAttackCo; // 延迟攻击协程引用
@@ -64,20 +78,35 @@ public class Player : Entity
     public float dashSpeed = 20; // 冲刺速度
     public Vector2 moveInput { get; private set; } // 移动输入值
     public Vector2 mousePosition {  get; private set; }// 鼠标位置
+
+    // 输入回调委托（用于 OnEnable/OnDisable 订阅和取消订阅）
+    private System.Action<InputAction.CallbackContext> onMousePerformed;
+    private System.Action<InputAction.CallbackContext> onMovementPerformed;
+    private System.Action<InputAction.CallbackContext> onMovementCanceled;
+    private System.Action<InputAction.CallbackContext> onSpellPerformed1;
+    private System.Action<InputAction.CallbackContext> onSpellPerformed2;
+    private System.Action<InputAction.CallbackContext> onInteractPerformed;
+    private System.Action<InputAction.CallbackContext> onQuickSlot1Performed;
+    private System.Action<InputAction.CallbackContext> onQuickSlot2Performed;
     #endregion
 
     protected override void Awake()
     {
         base.Awake();
-
+        instance = this;
 
         ui = FindAnyObjectByType<UI>();
         vfx = GetComponent<Player_VFX>();
         health = GetComponent<Entity_Health>();
         skillManager = GetComponent<Player_SkillManager>();
         statusHandler = GetComponent<Entity_StatusHandler>();
-        
+        combat = GetComponent<Player_Combat>();
+        inventory = GetComponent<Inventory_Player>();
+        stats = GetComponent<Player_Stats>();
+        questManager = GetComponent<Player_QuestManager>();
+
         input = new PlayerInputSet();
+        ui.SetupControlsUI(input);
 
         // 初始化所有状态实例
         idleState = new Player_IdleState(this, stateMachine, "idle");
@@ -117,7 +146,7 @@ public class Player : Entity
         float originalAnimSpeed = anim.speed;
         Vector2 originalWallJump = wallJumpForce;
         Vector2 originalJumpAttack = jumpAttackVelocity;
-        Vector2[] originalAttackVelocity = attackVelocity;
+        Vector2[] originalAttackVelocity = (Vector2[])attackVelocity.Clone();
         // 计算实际减速倍率（1 - 传入的减速比例）
         float speedMultiplier = 1 - slowMultiplier;
 
@@ -170,7 +199,31 @@ public class Player : Entity
         yield return new WaitForEndOfFrame();
         stateMachine.ChangeState(basicAttackState);
     }
+    private void TryInteract()
+    {
+        Transform closest = null;
+        float closestDistance = Mathf.Infinity;
+        Collider2D[] objectsAround = Physics2D.OverlapCircleAll(transform.position, 1f);
 
+        foreach (var target in objectsAround)
+        {
+            IInteractable interactable = target.GetComponent<IInteractable>();
+            if (interactable == null) continue;
+
+            float distance = Vector2.Distance(transform.position, target.transform.position);
+
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closest = target.transform;
+            }
+        }
+
+        if (closest == null)
+            return;
+
+        closest.GetComponent<IInteractable>().Interact();
+    }
     /// <summary>
     /// 启用输入并绑定移动输入事件
     /// </summary>
@@ -178,23 +231,36 @@ public class Player : Entity
     {
         input.Enable();
 
-        input.Player.Mouse.performed += ctx => mousePosition = ctx.ReadValue<Vector2>();
+        onMousePerformed = ctx => mousePosition = ctx.ReadValue<Vector2>();
+        onMovementPerformed = ctx => moveInput = ctx.ReadValue<Vector2>();
+        onMovementCanceled = ctx => moveInput = Vector2.zero;
+        onSpellPerformed1 = ctx => skillManager.timeEcho.TryUseSkill();
+        onSpellPerformed2 = ctx => skillManager.shard.TryUseSkill();
+        onInteractPerformed = ctx => TryInteract();
+        onQuickSlot1Performed = ctx => inventory.TryUseQuickItemInSlot(1);
+        onQuickSlot2Performed = ctx => inventory.TryUseQuickItemInSlot(2);
 
-        input.Player.Movement.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        input.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
-
-        input.Player.ToggleSkillTreeUI.performed += ctx => ui.ToggleSkillTreeUI();
-        input.Player.Spell.performed += ctx => skillManager.shard.TryUseSkill();
-        input.Player.Spell.performed += ctx => skillManager.timeEcho.TryUseSkill();
+        input.Player.Mouse.performed += onMousePerformed;
+        input.Player.Movement.performed += onMovementPerformed;
+        input.Player.Movement.canceled += onMovementCanceled;
+        input.Player.Spell.performed += onSpellPerformed1;
+        input.Player.Spell.performed += onSpellPerformed2;
+        input.Player.Interact.performed += onInteractPerformed;
+        input.Player.QuickItemSlot_1.performed += onQuickSlot1Performed;
+        input.Player.QuickItemSlot_2.performed += onQuickSlot2Performed;
     }
 
-    /// <summary>
-    /// 禁用输入
-    /// </summary>
     private void OnDisable()
     {
+        input.Player.Mouse.performed -= onMousePerformed;
+        input.Player.Movement.performed -= onMovementPerformed;
+        input.Player.Movement.canceled -= onMovementCanceled;
+        input.Player.Spell.performed -= onSpellPerformed1;
+        input.Player.Spell.performed -= onSpellPerformed2;
+        input.Player.Interact.performed -= onInteractPerformed;
+        input.Player.QuickItemSlot_1.performed -= onQuickSlot1Performed;
+        input.Player.QuickItemSlot_2.performed -= onQuickSlot2Performed;
+
         input.Disable();
     }
-
-    
 }

@@ -8,27 +8,15 @@
 using System.Collections;
 using UnityEngine;
 
-/// <summary>
-/// Buff数据结构（单条Buff的属性类型+数值）
-/// 支持为单个Buff道具配置多个属性加成/减益
-/// </summary>
-[System.Serializable]
-public class Buff
-{
-    public StatType type;
-    public float value;
-}
 public class Object_Buff : MonoBehaviour
 {
-    private SpriteRenderer sr;
-    private Entity_Stats statsToModify;
+    private Player_Stats statsToModify;
 
 
     [Header("Buff details")]
-    [SerializeField] private Buff[] buffs;
+    [SerializeField] private BuffEffectData[] buffs;
     [SerializeField] private string buffName;
     [SerializeField] private float buffDuration = 4;//Buff持续时长
-    [SerializeField] private bool canBeUsed = true;//是否可被使用（防止重复触发）
 
 
     [Header("Floaty movement")]
@@ -38,7 +26,6 @@ public class Object_Buff : MonoBehaviour
 
     private void Awake()
     {
-        sr = GetComponentInChildren<SpriteRenderer>();
         startPosition = transform.position;//记录初始位置
     }
 
@@ -51,33 +38,13 @@ public class Object_Buff : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!canBeUsed)
-            return;
-
-        statsToModify = collision.GetComponent<Entity_Stats>();
-        StartCoroutine(BuffCo(buffDuration));
-    }
-
-    private IEnumerator BuffCo(float duration)
-    {
-        canBeUsed = false;
-        sr.color = Color.clear;
-        ApplyBuff(true);
-
-        yield return new WaitForSeconds(duration);
-
-        ApplyBuff(false);
-        Destroy(gameObject);
-    }
-
-    private void ApplyBuff(bool apply)
-    {
-        foreach (var buff in buffs)
+        statsToModify = collision.GetComponent<Player_Stats>();
+        if (statsToModify == null) return;
+        // 检查是否可施加该Buff
+        if (statsToModify.CanApplyBuffOf(buffName))
         {
-            if(apply)
-                statsToModify.GetStatByType(buff.type).AddModifier(buff.value, buffName);
-            else
-                statsToModify.GetStatByType(buff.type).RemoveModifier(buffName);
+            statsToModify.ApplyBuff(buffs, buffDuration, buffName);
+            Destroy(gameObject);
         }
     }
 }

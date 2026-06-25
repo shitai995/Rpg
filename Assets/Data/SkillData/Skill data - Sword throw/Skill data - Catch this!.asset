@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 893e5ab88f177e44185c13d835881da4, type: 3}
+  m_Name: Skill data - Catch this!
+  m_EditorClassIdentifier: 
+  displayName: Catch this!
+  description: "\u6295\u63B7\u4F60\u7684\u5251\u6765\u4F24\u5BB3\u654C\u4EBA\u3002\u5251\u4F1A\u65BD\u52A0\u72B6\u6001\u6548\u679C\u3002\u4F60\u4E00\u6B21\u53EA\u80FD\u6709\u4E00\u628A\u5251\u5904\u4E8E\u6FC0\u6D3B\u72B6\u6001\u3002"
+  icon: {fileID: -1635648138, guid: bc98be45c3d95fb419be01dcd37d077a, type: 3}
+  cost: 1
+  unlockedByDefault: 0
+  skillType: 3
+  upgradeData:
+    upgradeType: 11
+    cooldown: 4
+    damageScaleData:
+      physical: 1
+      elemental: 1
+      chillDuration: 3
+      chillSlowMultiplier: 0.2
+      burnDuration: 3
+      burnDamageSacale: 1
+      shockDuration: 3
+      shockDamageScale: 1
+      shockCharge: 0.4

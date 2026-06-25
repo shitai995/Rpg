@@ -22,9 +22,13 @@ public class Player_AiredState : PlayerState
         // 调用基类Update：保留计时器、Y轴速度传递、冲刺检测等通用逻辑
         base.Update();
 
-        // 空中移动：有水平输入时，按空中移动倍率设置水平速度（保留竖直速度）
+        // 空中移动：有水平输入时平滑过渡（无输入时保持惯性，不瞬间归零）
         if (player.moveInput.x != 0)
-            player.SetVelocity(player.moveInput.x * (player.moveSpeed * player.inAirMoveMultiplier), rb.linearVelocity.y);
+        {
+            float targetX = player.moveInput.x * player.moveSpeed * player.inAirMoveMultiplier;
+            float smoothedX = Mathf.Lerp(rb.linearVelocity.x, targetX, 10f * Time.deltaTime);
+            player.SetVelocity(smoothedX, rb.linearVelocity.y);
+        }
 
         // 空中攻击：检测攻击输入，切换到跳跃攻击状态
         if (input.Player.Attack.WasPressedThisFrame())

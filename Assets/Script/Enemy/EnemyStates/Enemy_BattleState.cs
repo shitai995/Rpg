@@ -9,9 +9,10 @@ using UnityEngine;
 
 public class Enemy_BattleState : EnemyState
 {
-    private Transform player;// 目标玩家的Transform（追击/攻击的对象）
-    private Transform lastTarget;
-    private float lastTimeWasInBattle;// 最后检测到玩家的时刻
+    protected Transform player;// 目标玩家的Transform（追击/攻击的对象）
+    protected Transform lastTarget;
+    protected float lastTimeWasInBattle;// 最后检测到玩家的时刻
+    protected float lastTimeAttacked = float.NegativeInfinity;
     public Enemy_BattleState(Enemy enemy, StateMachine stateMachine, string animBoolName) : base(enemy, stateMachine, animBoolName)
     {
     }
@@ -29,11 +30,18 @@ public class Enemy_BattleState : EnemyState
         // 如果距离玩家过近（小于最小后撤距离），执行后撤逻辑
         if (ShouldRetreat())
         {
-            // 设置后撤速度（反向远离玩家）
-            rb.linearVelocity = new Vector2(enemy.retreatVelocity.x * -DirectionToPlayer(), enemy.retreatVelocity.y);
-            // 翻转敌人朝向（始终面向玩家）
-            enemy.HandleFlip(DirectionToPlayer());
+            QuickRetreat();
         }
+    }
+
+    protected void QuickRetreat()
+    {
+        float x = (enemy.retreatVelocity.x * -enemy.activeSlowMultiplier) * -DirectionToPlayer();
+        float y = enemy.retreatVelocity.y;
+        // 设置后撤速度（反向远离玩家）
+        rb.linearVelocity = new Vector2(x, y);
+        // 翻转敌人朝向（始终面向玩家）
+        enemy.HandleFlip(DirectionToPlayer());
     }
 
     public override void Update()
@@ -49,16 +57,25 @@ public class Enemy_BattleState : EnemyState
         if (BattleTimeIsOver())
             stateMachine.ChangeState(enemy.idleState);
         // 玩家在攻击范围内且能检测到 → 切换到攻击状态
-        if (WithinAttackRange() && enemy.PlayerDetected())
+        if (WithinAttackRange() && enemy.PlayerDetected()&& CanAttack())
+        {
+            lastTimeAttacked = Time.time;
             stateMachine.ChangeState(enemy.attackState);
+        }
         else
+        {
+            float xVelocity = enemy.canChasePlayer ? enemy.GetBattleMoveSpeed() : 0.001f;
             // 不在攻击范围 → 向玩家方向移动（追击）
-            enemy.SetVelocity(enemy.GetBattleMoveSpeed() * DirectionToPlayer(), rb.linearVelocity.y);
+            enemy.SetVelocity(xVelocity * DirectionToPlayer(), rb.linearVelocity.y);
+        }
+            
     }
+
+    protected bool CanAttack() => Time.time > lastTimeAttacked + enemy.attackCooldown;
     /// <summary>
     /// 更新敌人检测切换玩家或分身
     /// </summary>
-    private void UpdateTargetIfNeeded()
+    protected void UpdateTargetIfNeeded()
     {
         if (enemy.PlayerDetected() == false)
             return;
@@ -76,29 +93,29 @@ public class Enemy_BattleState : EnemyState
     /// <summary>
     /// 更新战斗计时器：记录最后检测到玩家的时刻
     /// </summary>
-    private void UpdateBattleTimer() => lastTimeWasInBattle = Time.time;
+    protected void UpdateBattleTimer() => lastTimeWasInBattle = Time.time;
     /// <summary>
     /// 判断战斗是否超时
     /// 逻辑：当前时间 > 最后检测到玩家的时间 + 战斗持续时长 → 超时
     /// </summary>
     /// <returns>超时返回true，未超时返回false</returns>
-    private bool BattleTimeIsOver() => Time.time > lastTimeWasInBattle + enemy.battleTimeDuration;
+    protected bool BattleTimeIsOver() => Time.time > lastTimeWasInBattle + enemy.battleTimeDuration;
     /// <summary>
     /// 判断是否在攻击范围内
     /// </summary>
     /// <returns>玩家距离 < 攻击距离 返回true</returns>
-    private bool WithinAttackRange() => DistanceToPlayer() < enemy.attackDistance;
+    protected bool WithinAttackRange() => DistanceToPlayer() < enemy.attackDistance;
     /// <summary>
     /// 判断是否需要后撤（距离玩家过近）
     /// </summary>
     /// <returns>玩家距离 < 最小后撤距离 返回true</returns>
-    private bool ShouldRetreat() => DistanceToPlayer() < enemy.minRetreatDistance;
+    protected bool ShouldRetreat() => DistanceToPlayer() < enemy.minRetreatDistance;
 
     /// <summary>
     /// 得到敌人与玩家距离
     /// </summary>
     /// <returns></returns>
-    private float DistanceToPlayer()
+    protected float DistanceToPlayer()
     {
         if (player == null)
             return float.MaxValue;
@@ -109,7 +126,7 @@ public class Enemy_BattleState : EnemyState
     /// 得到玩家相对敌人方向
     /// </summary>
     /// <returns></returns>
-    private int DirectionToPlayer()
+    protected int DirectionToPlayer()
     {
         if (player == null)
             return 0;

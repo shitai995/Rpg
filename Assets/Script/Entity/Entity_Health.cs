@@ -4,19 +4,24 @@
 // 版本：V1.1
 // 描述：实体血量类
 // ========================================================
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Entity_Health : MonoBehaviour,IDamgable
 {
+    public event Action OnTakingDamage;
+    public event Action OnHealthUpdate;
+
     private Slider healthBar;
     private Entity entity;
     private Entity_VFX entityVfx;// 实体特效组件（用于播放受击特效）
     private Entity_Stats entityStats;
+    private Entity_DropManager dropManager;
 
-
+    private bool minHealthBarActive;
     [SerializeField] protected float currentHealth;
-    [Header("Health regen")]
+    [Header("生命回复")]
     [SerializeField] private float regenInterval = 1;
     [SerializeField] private bool canRegenerateHealth = true;
     public float lastDamageTaken { get; private set; }
@@ -37,15 +42,23 @@ public class Entity_Health : MonoBehaviour,IDamgable
         entityVfx = GetComponent<Entity_VFX>();
         entityStats = GetComponent<Entity_Stats>();
         healthBar = GetComponentInChildren<Slider>();
-
-        SetupHealth();
+        dropManager = GetComponent<Entity_DropManager>();
     }
+    protected virtual void Start()
+    {
+        SetupHealth();
 
+    }
+    /// <summary>
+    /// 初始化血量与血条
+    /// </summary>
     private void SetupHealth()
     {
         if (entityStats == null)
             return;
         currentHealth = entityStats.GetMaxHealth();
+        OnHealthUpdate += UpdateHealthBar;
+
         UpdateHealthBar();
         InvokeRepeating(nameof(RegenerateHealth), 0, regenInterval);
     }
@@ -81,19 +94,26 @@ public class Entity_Health : MonoBehaviour,IDamgable
         
         lastDamageTaken = physicalDamageTaken + elementalDamageTaken;
 
+        OnTakingDamage?.Invoke();
         return true;
     }
-
+    /// <summary>
+    /// 设置是否可受伤
+    /// </summary>
     public void SetCanTakeDamage(bool canTakeDamage) => this.canTakeDamage = canTakeDamage;
-
+    /// <summary>
+    /// 判断是否闪避成功
+    /// </summary>
     private bool AttackEvaded()
     {
         if (entityStats == null)
             return false;
         else
-            return Random.Range(0, 100) < entityStats.GetEvasion();
-    } 
-
+            return UnityEngine.Random.Range(0, 100) < entityStats.GetEvasion();
+    }
+    /// <summary>
+    /// 定时生命回复
+    /// </summary>
     private void RegenerateHealth()
     {
         if (canRegenerateHealth == false)
@@ -102,6 +122,9 @@ public class Entity_Health : MonoBehaviour,IDamgable
         float regenAmount = entityStats.resources.healthRegen.GetValue();
         IncreaseHealth(regenAmount);
     }
+    /// <summary>
+    /// 治疗：增加血量（不超过上限）
+    /// </summary>
     public void IncreaseHealth(float healAmount)
     {
         if (isDead) 
@@ -111,7 +134,8 @@ public class Entity_Health : MonoBehaviour,IDamgable
         float maxHealth = entityStats.GetMaxHealth();
 
         currentHealth = Mathf.Min(newHealth, maxHealth);
-        UpdateHealthBar();
+        OnHealthUpdate?.Invoke();
+        
     }
     /// <summary>
     /// 扣减生命值并判断是否死亡
@@ -119,34 +143,42 @@ public class Entity_Health : MonoBehaviour,IDamgable
     public void ReduceHealth(float damage)
     {
         // 3. 播放受击特效（空条件运算符：避免组件为空时空引用报错）
-        entityVfx?.PlayOnDamageVfx();
         currentHealth -= damage;
-        UpdateHealthBar();
+
+        entityVfx?.PlayOnDamageVfx();
+        OnHealthUpdate?.Invoke();
 
         if(currentHealth <= 0)
             Die();
-        
     }
 
     protected virtual void Die()
     {
         isDead = true;
         entity.EntityDeath();
+        dropManager?.DropItems();
     }
-
+    /// <summary>
+    /// 获取当前血量百分比
+    /// </summary>
     public float GetHealthPercent() => currentHealth / entityStats.GetMaxHealth();
+    /// <summary>
+    /// 设置血量百分比
+    /// </summary>
     public void SetHealthToPercent(float percent)
     {
         currentHealth = entityStats.GetMaxHealth() * Mathf.Clamp01(percent);
-        UpdateHealthBar();
+        OnHealthUpdate?.Invoke();
     }
+    public float GetCurrentHealth() => currentHealth;
     private void UpdateHealthBar()
     {
-        if (healthBar == null)
+        if (healthBar == null || healthBar.transform.parent.gameObject.activeSelf == false)
             return;
 
         healthBar.value = currentHealth / entityStats.GetMaxHealth();
     }
+    public void EnableHealthBar(bool enable) => healthBar?.transform.parent.gameObject.SetActive(enable);
     private void TakeKnockback(Transform damageDealer, float finalDamage)
     {
         // 1. 计算击退力度和方向（根据是否为重伤 + 伤害来源方向）
