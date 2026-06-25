@@ -18,7 +18,8 @@ public class Enemy : Entity
 
     public Entity_Stats stats { get; private set; }
     public Enemy_Health health { get; private set; }
-
+    public Entity_Combat combat { get; private set; }
+    public Entity_VFX vfx { get; private set; }
     // 敌人所有状态
     public Enemy_IdleState idleState;
     public Enemy_MoveState moveState;
@@ -30,6 +31,9 @@ public class Enemy : Entity
     [Header("战斗配置")]
     public float battleMoveSpeed = 3;        // 战斗移动速度
     public float attackDistance = 2;         // 攻击判定距离
+    public float attackCooldown = .5f;
+    public bool canChasePlayer = true;
+    [Space]
     public float battleTimeDuration = 5;      // 战斗状态持续时长
     public float minRetreatDistance = 1;      // 攻击后最小后撤距离
     public Vector2 retreatVelocity;           // 后撤速度
@@ -62,8 +66,13 @@ public class Enemy : Entity
         base.Awake();
         health = GetComponent<Enemy_Health>();
         stats = GetComponent<Entity_Stats>();
+        combat = GetComponent<Entity_Combat>();
+        vfx = GetComponent<Entity_VFX>();
     }
+    public virtual void SpecialAttack()
+    {
 
+    }
     /// <summary>
     /// 实体减速协程
     /// </summary>
@@ -119,6 +128,10 @@ public class Enemy : Entity
         stateMachine.ChangeState(battleState);
     }
 
+    public void DestroyGameObjectWithDelay(float delay = 10)
+    {
+        Destroy(gameObject, delay);
+    }
     /// <summary>
     /// 获取玩家引用
     /// </summary>

@@ -34,6 +34,7 @@ public class Player_DashState : PlayerState
         rb.gravityScale = 0;
 
         player.health.SetCanTakeDamage(false);
+        player.gameObject.layer = LayerMask.NameToLayer("Untargetable");
     }
 
     public override void Update()
@@ -63,6 +64,7 @@ public class Player_DashState : PlayerState
         player.health.SetCanTakeDamage(true);
         player.SetVelocity(0, 0); // 重置速度（避免冲刺后残留速度）
         rb.gravityScale = originalGravityScale; // 恢复原始重力
+        player.gameObject.layer = LayerMask.NameToLayer("Player");
     }
 
     /// <summary>

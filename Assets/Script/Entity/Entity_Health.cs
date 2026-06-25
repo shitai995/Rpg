@@ -43,10 +43,10 @@ public class Entity_Health : MonoBehaviour,IDamgable
         entityStats = GetComponent<Entity_Stats>();
         healthBar = GetComponentInChildren<Slider>();
         dropManager = GetComponent<Entity_DropManager>();
-        SetupHealth();
     }
     protected virtual void Start()
     {
+        SetupHealth();
 
     }
     /// <summary>

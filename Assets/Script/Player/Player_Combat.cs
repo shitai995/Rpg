@@ -12,7 +12,7 @@ public class Player_Combat : Entity_Combat
 {
     [Header("Counter attack details")]
     [SerializeField] private float counterRecovery = .1f;// 反击后恢复时长
-
+    [SerializeField] private LayerMask whatIsCounterable;
     /// <summary>
     /// 执行反击攻击检测与处理
     /// 核心逻辑：遍历检测范围内的所有目标，触发可被反击目标的反击逻辑
@@ -21,7 +21,7 @@ public class Player_Combat : Entity_Combat
     {
         bool hasPerformedCounter = false;
 
-        foreach (var target in GetDetectedColliders())
+        foreach (var target in GetDetectedColliders(whatIsCounterable))
         {
             ICounterable counterable = target.GetComponent<ICounterable>();
 

@@ -25,5 +25,6 @@ public class Enemy_DeadState : EnemyState
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 15);// 设置刚体线速度：保留水平速度，垂直方向给向上的初速度
         // 4. 关闭敌人状态机
         stateMachine.SwitchOffStateMachine();
+        enemy.DestroyGameObjectWithDelay();
     }
 }

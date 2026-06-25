@@ -13,6 +13,15 @@ public class Entity_VFX : MonoBehaviour
     protected SpriteRenderer sr;// 实体的精灵渲染器（用于切换材质实现视觉特效）
     private Entity entity;
 
+    [Header("角色残影特效")]
+    [Range(.01f, .2f)]
+    [Tooltip("残影生成时间间隔")]
+    [SerializeField] private float imageEchoInterval = .05f;
+
+    [Tooltip("残影特效预制体")]
+    [SerializeField] private GameObject imageEchoPrefab;
+
+    private Coroutine imageEchoCo;
     [Header("受击材质特效参数")]
     [SerializeField] private Material onDamageMaterial;// 受击时切换的材质（如红色高亮材质）
     [SerializeField] private float onDamageVfxDuration = .2f;// 受击特效持续时间
@@ -30,8 +39,6 @@ public class Entity_VFX : MonoBehaviour
     [SerializeField] private Color shockVfx = Color.yellow;
     private Color originalHitVfxColor;// 缓存命中特效原始颜色（用于元素特效结束后恢复）
     private Coroutine statusVfxCo;
-
-
     private void Awake()
     {
         entity = GetComponent<Entity>();
@@ -40,6 +47,48 @@ public class Entity_VFX : MonoBehaviour
         originalMaterial = sr.material;
         originalHitVfxColor = hitVfxColor;
     }
+
+    /// <summary>
+    /// 开启残影拖影效果
+    /// </summary>
+    public void DoImageEchoEffect(float duration)
+    {
+        StopImageEchoEffect();
+        imageEchoCo = StartCoroutine(IamgeEchoEffectCo(duration));
+    }
+    public void StopImageEchoEffect()
+    {
+        if (imageEchoCo != null)
+            StopCoroutine(imageEchoCo);
+    }
+    /// <summary>
+    /// 残影持续生成协程
+    /// </summary>
+    private IEnumerator IamgeEchoEffectCo(float duration)
+    {
+        float timeTracker = 0;
+        while (timeTracker < duration)
+        {
+            CreateImageEcho();
+            yield return new WaitForSeconds(imageEchoInterval);
+            timeTracker += imageEchoInterval;
+        }
+    }
+
+    /// <summary>
+    /// 生成单帧角色残影
+    /// </summary>
+    private void CreateImageEcho()
+    {
+        Vector3 position = entity.anim.transform.position;
+        float scale = entity.anim.transform.localScale.x;
+
+        GameObject imageEcho = Instantiate(imageEchoPrefab,position, transform.rotation);
+        
+        imageEcho.transform.localScale = new Vector3(scale,scale,scale);
+        imageEcho.GetComponentInChildren<SpriteRenderer>().sprite = sr.sprite;
+    }
+
     public void PlayOnStatusVfx(float duration, ElementType element)
     {
         if (element == ElementType.Ice)

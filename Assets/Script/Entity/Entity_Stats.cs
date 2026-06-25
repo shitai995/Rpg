@@ -6,7 +6,9 @@
 // 核心功能：元素伤害/抗性、物理伤害/暴击、护甲减伤/闪避等战斗数值的最终计算
 // ========================================================
 
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Entity_Stats : MonoBehaviour
 {
@@ -20,6 +22,29 @@ public class Entity_Stats : MonoBehaviour
     public Stat_MajorGroup major;           // 主属性（力/敏/智/体）
 
     protected virtual void Awake() { }
+
+    public void AdiustStatSetup(Stat_ResourceGroup resourceGroup,Stat_OffenseGroup offenseGroup,Stat_DefenseGroup defenseGroup,float penalty,float increase)
+    {
+
+        offense.damage.SetBaseValue(offenseGroup.damage.GetValue() * increase);
+        offense.attackSpeed.SetBaseValue(offenseGroup.attackSpeed.GetValue() * increase);
+        offense.critChance.SetBaseValue(offenseGroup.critChance.GetValue() * increase);
+        offense.critPower.SetBaseValue(offenseGroup.critPower.GetValue() * increase);
+        offense.fireDamage.SetBaseValue(offenseGroup.fireDamage.GetValue() * increase); 
+        offense.iceDamage.SetBaseValue(offenseGroup.iceDamage.GetValue() * increase);
+        offense.lightningDamage.SetBaseValue(offenseGroup.lightningDamage.GetValue() * increase);
+
+        defense.evasion.SetBaseValue(defenseGroup.evasion.GetValue() * increase);
+
+        resources.maxHealth.SetBaseValue(resourceGroup.maxHealth.GetValue() * penalty);
+        resources.healthRegen.SetBaseValue(resourceGroup.healthRegen.GetValue() * penalty);
+
+        defense.armor.SetBaseValue(defenseGroup.armor.GetValue() * penalty);
+        defense.lightningRes.SetBaseValue(defenseGroup.lightningRes.GetValue() * penalty);
+        defense.fireRes.SetBaseValue(defenseGroup.fireRes.GetValue() * penalty);
+        defense.iceRes.SetBaseValue(defenseGroup.iceRes.GetValue() * penalty);
+
+    }
 
     // 获取攻击数据（伤害+类型）
     public AttackData GetAttackData(DamageScaleData scaleData)
